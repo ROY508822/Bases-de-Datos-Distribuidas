@@ -216,15 +216,20 @@ GROUP BY orderID;
 **Solución** ✅
 
 ````sql
-SELECT *
-FROM address
-WHERE city = 'Ciudad de México';
+SELECT DISTINCT customer.customerID, customer.name, customerAddress.type
+FROM customer
+INNER JOIN customerAddress ON customer.customerID = customerAddress.customerID WHERE customerAddress.[type] = 'Shipping';
 ````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
-
+| customerID | name       | type     |
+| ---------: | ---------- | -------- |
+|          1 | Customer 1 | Shipping |
+|          2 | Customer 2 | Shipping |
+|          3 | Customer 3 | Shipping |
+|          4 | Customer 4 | Shipping |
+|          5 | Customer 5 | Shipping |
 
 ¿Qué practicas?
 ---------------
