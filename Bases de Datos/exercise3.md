@@ -5,7 +5,8 @@ _______________________________
 En la siguiente imagen se presenta el modelo relacional de la base de datos.
 Es indispensable que primero construyas la base de datos, las tablas e insertes datos de prueba.
 
-![Modelo relacional salesdb](salesdb.png)
+<img width="898" height="681" alt="salesdb" src="https://github.com/user-attachments/assets/c9aa77cf-561f-4b83-a672-2f339e73ddbf" />
+
 
 Nota. Sigue el ejemplo para preparar tu entregable.
 
@@ -24,8 +25,6 @@ Ejemplo
 
 OPCIÓN 1. Imagen con el resultado de la consulta. 
 
-![Resultado de consulta 1](tabla1.png)
-
 OPCIÓN 2. Tabla con el resultado de la consulta.
 
 | idTabla | atributo1 | atributo2 | atributo3 | 
@@ -42,97 +41,185 @@ Consultas
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT customerID, name, email
+FROM customer;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| customerID | name           | email                                               |
+| ---------: | -------------- | --------------------------------------------------- |
+|          1 | Juan Pérez     | [juan.perez@gmail.com](mailto:juan.perez@gmail.com) |
+|          2 | Ana López      | [ana.lopez@gmail.com](mailto:ana.lopez@gmail.com)   |
+|          3 | Carlos Ramírez | [carlos.r@gmail.com](mailto:carlos.r@gmail.com)     |
+|          4 | María Torres   | [maria.t@gmail.com](mailto:maria.t@gmail.com)       |
+|          5 | Luis Hernández | [luis.h@gmail.com](mailto:luis.h@gmail.com)         |
+
    
-2. Direcciones en una ciudad específica: *Muestra todas las direcciones que estén en la ciudad de Madrid*.
+2. Direcciones en una ciudad específica: *Muestra todas las direcciones que estén en la ciudad de Ciudd de Mexico*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT *
+FROM address
+WHERE city = 'Ciudad de México';
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| addressID | street               | locally   | city             | postcode | state |
+| --------: | -------------------- | --------- | ---------------- | -------: | ----- |
+|         1 | Av. Reforma 100      | Centro    | Ciudad de México |    06000 | CDMX  |
+|         3 | Av. Universidad 300  | Copilco   | Ciudad de México |    04360 | CDMX  |
+|         5 | Av. Insurgentes 1500 | Del Valle | Ciudad de México |    03100 | CDMX  |
+
    
 3. Productos con precio mayor a 200: *Lista los productos cuyo precio sea mayor a 200*.
    
 **Solución** ✅
 
-   TODO script SQL
+ ````sql
+SELECT productID, name, price
+FROM product
+WHERE price > 200;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| productID | name               | price    |
+| --------: | ------------------ | -------- |
+|         1 | Laptop Lenovo      | 18500.50 |
+|         2 | Mouse Logitech     | 350.00   |
+|         3 | Smartphone Samsung | 12999.99 |
+|         4 | Teclado Mecánico   | 1200.00  |
+|         5 | Monitor LG 24"     | 4200.00  |
+
 
 4. Pedidos ordenados por fecha: *Muestra todos los pedidos ordenados desde el más reciente al más antiguo*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT orderID, customerID, date, total
+FROM customerOrder
+ORDER BY date DESC;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| orderID | customerID | date       | total |
+| ------: | ---------: | ---------- | ----: |
+|       5 |          5 | 2025-01-19 | 13200 |
+|       4 |          4 | 2025-01-18 |  4700 |
+|       3 |          3 | 2025-01-17 |  4200 |
+|       2 |          2 | 2025-01-16 | 13549 |
+|       1 |          1 | 2025-01-15 | 18850 |
    
 5. Primeros 5 proveedores: *Obtén los primeros 5 proveedores ordenados alfabéticamente por nombre*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT TOP 5 supplierID, name
+FROM supplier
+ORDER BY name ASC;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| supplierID | name               |
+| ---------: | ------------------ |
+|          5 | Digital Home       |
+|          2 | Global Electronics |
+|          4 | Office World       |
+|          3 | Smart Devices MX   |
+|          1 | Tech Supplies SA   |
 
 6. Clientes y su ciudad: *Muestra el nombre del cliente y la ciudad donde vive*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT customer.name AS cliente, address.city AS ciudad
+FROM customer
+JOIN address ON customer.addressID = address.addressID;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| cliente        | ciudad           |
+| -------------- | ---------------- |
+| Juan Pérez     | Ciudad de México |
+| Ana López      | Ciudad de México |
+| Carlos Ramírez | Ciudad de México |
+| María Torres   | Guadalajara      |
+| Luis Hernández | Monterrey        |
 
 7. Productos y su proveedor: *Lista el nombre del producto y el nombre de su proveedor*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT product.name AS producto, supplier.name AS proveedor
+FROM product
+JOIN supplier ON product.supplierID = supplier.supplierID;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| producto           | proveedor          |
+| ------------------ | ------------------ |
+| Laptop Lenovo      | Tech Supplies SA   |
+| Mouse Logitech     | Tech Supplies SA   |
+| Smartphone Samsung | Global Electronics |
+| Teclado Mecánico   | Smart Devices MX   |
+| Monitor LG 24"     | Office World       |
 
-8. Pedidos de un cliente específico: *Muestra todos los pedidos realizados por el cliente con customerID = 10*.
+
+8. Pedidos de un cliente específico: *Muestra todos los pedidos realizados por el cliente con customerID = 1*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT orderID, date, total, status
+FROM customerOrder
+WHERE customerID = 1;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| orderID | date       | total | status |
+| ------: | ---------- | ----: | ------ |
+|       1 | 2025-01-15 | 18850 | Pagado |
 
 9. Cantidad de productos en cada pedido: *Muestra el ID del pedido y la cantidad de productos comprados en cada uno*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT orderID, SUM(quantity) AS totalProductos
+FROM orderProduct
+GROUP BY orderID;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| orderID | totalProductos |
+| ------: | -------------: |
+|       1 |              2 |
+|       2 |              2 |
 
 10. Clientes con dirección de envío: *Lista los clientes que tienen una dirección de tipo Shipping*.
    
 **Solución** ✅
 
-   TODO script SQL
+````sql
+SELECT *
+FROM address
+WHERE city = 'Ciudad de México';
+````
 
 **Salida** 📌
 
