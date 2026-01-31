@@ -42,8 +42,7 @@ Consultas
 **Solución** ✅
 
 ````sql
-SELECT customerID, name, email
-FROM customer;
+SELECT customerID, name, email FROM customer;
 ````
 
 **Salida** 📌
@@ -62,8 +61,7 @@ FROM customer;
 **Solución** ✅
 
 ````sql
-SELECT *
-FROM address
+SELECT * FROM address
 WHERE city = 'Ciudad de México';
 ````
 
@@ -81,8 +79,7 @@ WHERE city = 'Ciudad de México';
 **Solución** ✅
 
  ````sql
-SELECT productID, name, price
-FROM product
+SELECT productID, name, price FROM product
 WHERE price > 200;
 ````
 
@@ -102,8 +99,7 @@ WHERE price > 200;
 **Solución** ✅
 
 ````sql
-SELECT orderID, customerID, date, total
-FROM customerOrder
+SELECT orderID, customerID, date, total FROM customerOrder
 ORDER BY date DESC;
 ````
 
@@ -122,8 +118,7 @@ ORDER BY date DESC;
 **Solución** ✅
 
 ````sql
-SELECT TOP 5 supplierID, name
-FROM supplier
+SELECT TOP 5 supplierID, name FROM supplier
 ORDER BY name ASC;
 ````
 
@@ -142,8 +137,7 @@ ORDER BY name ASC;
 **Solución** ✅
 
 ````sql
-SELECT customer.name AS cliente, address.city AS ciudad
-FROM customer
+SELECT customer.name AS cliente, address.city AS ciudad FROM customer
 JOIN address ON customer.addressID = address.addressID;
 ````
 
@@ -162,8 +156,7 @@ JOIN address ON customer.addressID = address.addressID;
 **Solución** ✅
 
 ````sql
-SELECT product.name AS producto, supplier.name AS proveedor
-FROM product
+SELECT product.name AS producto, supplier.name AS proveedor FROM product
 JOIN supplier ON product.supplierID = supplier.supplierID;
 ````
 
@@ -183,8 +176,7 @@ JOIN supplier ON product.supplierID = supplier.supplierID;
 **Solución** ✅
 
 ````sql
-SELECT orderID, date, total, status
-FROM customerOrder
+SELECT orderID, date, total, status FROM customerOrder
 WHERE customerID = 1;
 ````
 
@@ -199,8 +191,7 @@ WHERE customerID = 1;
 **Solución** ✅
 
 ````sql
-SELECT orderID, SUM(quantity) AS totalProductos
-FROM orderProduct
+SELECT orderID, SUM(quantity) AS totalProductos FROM orderProduct
 GROUP BY orderID;
 ````
 
@@ -216,9 +207,8 @@ GROUP BY orderID;
 **Solución** ✅
 
 ````sql
-SELECT DISTINCT customer.customerID, customer.name, customerAddress.type
-FROM customer
-INNER JOIN customerAddress ON customer.customerID = customerAddress.customerID WHERE customerAddress.[type] = 'Shipping';
+SELECT DISTINCT customer.customerID, customer.name, customerAddress.type FROM customer
+INNER JOIN customerAddress ON customer.customerID = customerAddress.customerID WHERE customerAddress.type = 'Shipping';
 ````
 
 **Salida** 📌
