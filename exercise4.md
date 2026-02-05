@@ -1,4 +1,6 @@
 # Bloque 4. *Consultas SQL nivel intermedio*
+<img width="898" height="681" alt="image" src="https://github.com/user-attachments/assets/ecdb31db-b89f-4500-8f69-3b1ab5aa45d9" />
+
 _______________________________
 
 📌 Nivel: Intermedio
@@ -48,37 +50,71 @@ Consultas
    
 **Solución** ✅
 
-   TODO script SQL
+```SQL
+SELECT customer.name AS cliente, COUNT(customerOrder.orderID) AS total_pedidos FROM customer
+LEFT JOIN customerOrder ON customer.customerID = customerOrder.customerID
+GROUP BY customer.customerID, customer.name;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| cliente        | total_pedidos |
+| -------------- | ------------- |
+| Juan Pérez     | 1             |
+| Ana López      | 1             |
+| Carlos Ramírez | 1             |
+| María Torres   | 1             |
+| Luis Hernández | 1             |
+
    
 2. *Total gastado por cliente*. Obtén el nombre del cliente y el importe total gastado en todos sus pedidos.
    
 **Solución** ✅
 
-   TODO script SQL
+```` SQL
+SELECT customer.name AS cliente, SUM(customerOrder.total) AS total_gastado FROM customer
+LEFT JOIN customerOrder ON customer.customerID = customerOrder.customerID
+GROUP BY customer.customerID, customer.name;
+````
 
 **Salida** 📌
+|Cliente          |Total_gastado    |
+| --------------- | --------------- |
+|Juan Pérez       |20000            |
+|Ana López        |13549            |
+|Carlos Ramírez   |4200             |
+|María Torres     |4700             |
+|Luis Hernández   |13200            |
 
-   TODO listado de atributos y tuplas
    
 3. *Productos más caros por proveedor*. Muestra el proveedor y el precio máximo de los productos que suministra.
    
 **Solución** ✅
 
-   TODO script SQL
+````SQL
+SELECT supplier.name AS proveedor, MAX(product.price) AS precio_maximo FROM supplier
+LEFT JOIN product ON supplier.supplierID = product.supplierID
+GROUP BY supplier.supplierID, supplier.name;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| proveedor          | precio_maximo |
+| ------------------ | ------------- |
+| Tech Supplies SA   | 18501         |
+| Global Electronics | 1300          |
+| Smart Devices MX   | 1200          |
+| Office World       | 4200          |
+| Digital Home       | NULL          |
 
 4. *Pedidos con más de 3 productos*. Lista los pedidos cuyo total de unidades compradas sea mayor a 3.
    
 **Solución** ✅
 
-   TODO script SQL
+ ````SQL
+SELECT op.orderID, SUM(op.quantity) AS total_unidades FROM orderProduct op
+GROUP BY op.orderID HAVING SUM(op.quantity) > 1;
+````
 
 **Salida** 📌
 
@@ -159,5 +195,6 @@ Consultas
 ✔ Análisis de datos reales
 
 Llegaste al final 🚀
+
 
 
