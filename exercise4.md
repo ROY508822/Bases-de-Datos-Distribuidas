@@ -107,7 +107,7 @@ GROUP BY supplier.supplierID, supplier.name;
 | Office World       | 4200          |
 | Digital Home       | NULL          |
 
-4. *Pedidos con más de 3 productos*. Lista los pedidos cuyo total de unidades compradas sea mayor a 3.
+4. *Pedidos con más de 1 productos*. Lista los pedidos cuyo total de unidades compradas sea mayor a 1.
    
 **Solución** ✅
 
@@ -118,68 +118,124 @@ GROUP BY op.orderID HAVING SUM(op.quantity) > 1;
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| orderID | total_unidades |
+| ------: | -------------: |
+|       1 |              2 |
+|       2 |              2 |
+
    
 5. *Ventas totales por producto*. Muestra el nombre del producto y el total de unidades vendidas.
    
 **Solución** ✅
 
-   TODO script SQL
+````SQL
+SELECT p.productID, p.name, SUM(op.quantity) AS total_unidades_vendidas FROM product p
+INNER JOIN orderProduct op
+    ON p.productID = op.productID
+GROUP BY p.productID, p.name;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| productID | name               | total_unidades_vendidas |
+| --------: | ------------------ | ----------------------: |
+|         1 | Laptop Lenovo      |                       1 |
+|         2 | Mouse Logitech     |                       1 |
+|         3 | Smartphone Samsung |                       1 |
+|         4 | Teclado Mecánico   |                       1 |
+|         5 | Monitor LG 24"     |                       1 |
 
-6. *Clientes que han gastado más de $1,000.00*. Lista los clientes cuyo gasto total sea mayor a 1000.
+
+6. *Clientes que han gastado más de $10,000.00*. Lista los clientes cuyo gasto total sea mayor a 10000.
    
 **Solución** ✅
 
-   TODO script SQL
+````SQL
+SELECT c.name, SUM(co.total) AS gasto_totsl FROM customer c
+INNER JOIN customerOrder co ON c.customerID = co.customerID
+GROUP BY c.name HAVING SUM(co.total) > 10000;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| customerID | name           | gasto_total |
+| ---------: | -------------- | ----------: |
+|          1 | Juan Pérez     |       18850 |
+|          2 | Ana López      |       13549 |
+|          5 | Luis Hernández |       13200 |
+
 
 7. *Promedio de precio por tipo de producto*. Obtén el precio promedio de los productos por cada tipo.
    
 **Solución** ✅
 
-   TODO script SQL
+````SQL
+SELECT type, AVG(price) AS precio_promedio FROM product
+GROUP BY type;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| type        | precio_promedio |
+| ----------- | --------------- |
+| Accesorio   | 775.00          |
+| Electrónica | 11900.163333    |
+
 
 8. *Proveedores con más de 5 productos*. Muestra los proveedores que suministran más de 5 productos.
 
    
 **Solución** ✅
 
-   TODO script SQL
+````SQL
+SELECT s.name, COUNT(p.productID) AS total_productos FROM supplier s
+INNER JOIN product p ON s.supplierID = p.supplierID
+GROUP BY s.supplierID, s.name HAVING COUNT(p.productID) > 1;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| supplierID | name             | total_productos |
+| ---------: | ---------------- | --------------: |
+|          1 | Tech Supplies SA |               2 |
+
 
 9. *Pedidos con información del cliente*. Muestra el ID del pedido, la fecha y el nombre del cliente.
    
 **Solución** ✅
 
-   TODO script SQL
+````SQL
+SELECT co.orderID, co.date, c.name FROM customerOrder co
+INNER JOIN customer c ON co.customerID = c.customerID;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| orderID | date       | name           |
+| ------: | ---------- | -------------- |
+|       1 | 2025-01-15 | Juan Pérez     |
+|       2 | 2025-01-16 | Ana López      |
+|       3 | 2025-01-17 | Carlos Ramírez |
+|       4 | 2025-01-18 | María Torres   |
+|       5 | 2025-01-19 | Luis Hernández |
+
 
 10. *Clientes sin pedidos*. Lista los clientes que no han realizado ningún pedido.
 
 **Solución** ✅
 
-   TODO script SQL
+````SQL
+SELECT c.name FROM customer c
+LEFT JOIN customerOrder co ON c.customerID = co.customerID
+WHERE co.orderID IS NULL;
+````
 
 **Salida** 📌
 
-   TODO listado de atributos y tuplas
+| name |
+| ---- |
+|      |
+
 
 
 📘 Qué se refuerza en nivel intermedio
@@ -195,6 +251,7 @@ GROUP BY op.orderID HAVING SUM(op.quantity) > 1;
 ✔ Análisis de datos reales
 
 Llegaste al final 🚀
+
 
 
 
