@@ -52,19 +52,49 @@ Fragmentos verticales
    
 **Esquema del fragmento** ✅
 
-	TODO esquema
+
 
 **Script para crear fragmento** ✅
 
-   TODO script SQL
+````SQL
+CREATE DATABASE customerDB;
+USE customerDB;
+
+CREATE TABLE customer
+(
+    customerID INT PRIMARY KEY,
+    name       NVARCHAR(100),
+    phone      NVARCHAR(20),
+    email      NVARCHAR(100),
+    addressID  INT
+);
+````
 
 **Scripts para descargar los datos de la base de datos salesbd.** 📌
 
-   TODO script SQL
+````CMD
+bcp "SELECT * FROM customer" queryout "C:\Users\royes\Desktop\fragcustomertrue.csv" -c -t, -r\n -S localhost -d ECOMMERCE -T
+````
 
 **Scripts para cargar los datos al fragmento 1.** 📌
 
-   TODO script SQL
+````SQL
+BULK INSERT customer.dbo.customer
+FROM 'C:\Users\royes\Desktop\fragcustomertrue.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+````
+
+**Alternativa sencilla SQL server**
+
+````SQL
+INSERT INTO customerDB.dbo.customer
+SELECT customerID, name, phone, email, addressID
+FROM ECOMMERCE.dbo.customer;
+````
 
    
 2. 🧠 *Fragmento supplierDB*. Construye un fragmento vertical que contenga todos los datos de supplier, pero sólo los de supplier.
@@ -148,5 +178,6 @@ Fragmentos horizontales
 ✔ Consultas tipo examen universitario / técnico
 
 Dime qué quieres, cómo lo quieres y lo armamos 💪 🚀
+
 
 
