@@ -10,7 +10,8 @@ Utiliza el [respaldo de la base de datos](https://github.com/edcrvl/courses/edit
 
 La práctica se basa en el modelo relacional de la base de datos base de datos *salesbd* que se prenta en el siguiente diagrama. 
 
-![Modelo relacional salesdb](salesdb.png)
+<img width="1287" height="909" alt="image" src="https://github.com/user-attachments/assets/253ad31e-fc44-4ce9-b4ef-80901c56b6b7" />
+
 
 Nota. Sigue el ejemplo para preparar tu entregable.
 
@@ -101,19 +102,49 @@ FROM ECOMMERCE.dbo.customer;
    
 **Esquema del fragmento** ✅
 
-	TODO esquema
+	TODO esquem
 
 **Script para crear fragmento** ✅
 
-   TODO script SQL
+````SQL
+CREATE DATABASE supplierDB;
+USE supplierDB;
+
+CREATE TABLE supplier
+(
+    supplierID INT PRIMARY KEY,
+    name       NVARCHAR(100),
+    phone      NVARCHAR(20),
+    email      NVARCHAR(100),
+    addressID  INT
+);
+````
 
 **Scripts para descargar los datos de la base de datos salesbd.** 📌
 
-   TODO script SQL
+````CMD
+bcp "SELECT * FROM supplier" queryout "C:\Users\royes\Desktop\fragsuppliertrue.csv" -c -t, -r\n -S localhost -d ECOMMERCE -T
+````
 
 **Scripts para cargar los datos al fragmento 1.** 📌
 
-   TODO script SQL
+````SQL
+BULK INSERT supplierDB.dbo.supplier
+FROM 'C:\Users\royes\Desktop\fragsuppliertrue.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+````
+
+**Alternativa sencilla SQL server**
+
+````SQL
+INSERT INTO supplierDB.dbo.supplier
+SELECT supplierID, name, phone, email, addressID
+FROM ECOMMERCE.dbo.supplier;
+````
    
 Fragmentos horizontales
 ------------------------
@@ -178,6 +209,7 @@ Fragmentos horizontales
 ✔ Consultas tipo examen universitario / técnico
 
 Dime qué quieres, cómo lo quieres y lo armamos 💪 🚀
+
 
 
 
