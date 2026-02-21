@@ -278,9 +278,7 @@ WHERE c.customerID = co.customerID);
 
 ````SQL
 CREATE DATABASE zona2DB;
-GO
 USE zona2DB;
-GO
 
 CREATE TABLE address (
     addressID  INT PRIMARY KEY,
@@ -397,13 +395,115 @@ WHERE c.customerID = co.customerID);
 
 **Script para crear fragmento** ✅
 
-   TODO script SQL
+````SQL
+CREATE DATABASE zona3DB;
+USE zona3DB;
+
+CREATE TABLE address (
+    addressID  INT PRIMARY KEY,
+    street     NVARCHAR(100),
+    locality   NVARCHAR(100),
+    city       NVARCHAR(100),
+    postcode   NVARCHAR(10),
+    state      NVARCHAR(50)
+);
+
+CREATE TABLE customer (
+    customerID INT PRIMARY KEY,
+    name       NVARCHAR(100),
+    phone      NVARCHAR(20),
+    email      NVARCHAR(100),
+    addressID  INT
+);
+
+CREATE TABLE customerAddress (
+    customerAddressID INT PRIMARY KEY,
+    customerID        INT,
+    addressID         INT,
+    type              NVARCHAR(50),
+    position          NVARCHAR(50)
+);
+
+CREATE TABLE customerOrder (
+    orderID        INT PRIMARY KEY,
+    customerID     INT,
+    date           DATE,
+    total          DECIMAL(10,2),
+    paymentMethod  NVARCHAR(50),
+    status         NVARCHAR(50)
+);
+````
 
 **Scripts para descargar los datos de la base de datos salesbd.** 📌
 
-   TODO script SQL
+````CMD
+bcp "SELECT * FROM ECOMMERCE.dbo.address WHERE state IN ('Morelos','Veracruz')" queryout "C:\Users\royes\Desktop\address_zona3.csv" -c -t, -r\n -S localhost -T
+
+bcp "SELECT * FROM ECOMMERCE.dbo.customer c WHERE EXISTS (SELECT 1 FROM ECOMMERCE.dbo.customerAddress ca JOIN ECOMMERCE.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('Morelos','Veracruz'))" queryout "C:\Users\royes\Desktop\customer_zona3.csv" -c -t, -r\n -S localhost -T
+
+bcp "SELECT ca.customerAddressID, ca.customerID, ca.addressID, ca.type, ca.position FROM ECOMMERCE.dbo.customerAddress ca JOIN ECOMMERCE.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('Morelos','Veracruz')" queryout "C:\Users\royes\Desktop\customerAddress_zona3.csv" -c -t, -r\n -S localhost -T
+
+bcp "SELECT * FROM ECOMMERCE.dbo.customerOrder co WHERE EXISTS (SELECT 1 FROM ECOMMERCE.dbo.customer c WHERE c.customerID = co.customerID AND EXISTS (SELECT 1 FROM ECOMMERCE.dbo.customerAddress ca JOIN ECOMMERCE.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('Morelos','Veracruz')))" queryout "C:\Users\royes\Desktop\customerOrder_zona3.csv" -c -t, -r\n -S localhost -T
+````
 
 **Scripts para cargar los datos al fragmento 1.** 📌
+
+````SQL
+BULK INSERT zona3DB.dbo.address
+FROM 'C:\Users\royes\Desktop\address_zona3.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+
+BULK INSERT zona3DB.dbo.customer
+FROM 'C:\Users\royes\Desktop\customer_zona3.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+
+BULK INSERT zona3DB.dbo.customerAddress
+FROM 'C:\Users\royes\Desktop\customerAddress_zona3.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+
+BULK INSERT zona3DB.dbo.customerOrder
+FROM 'C:\Users\royes\Desktop\customerOrder_zona3.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+````
+**Alternativa sencilla SQL server**
+
+````SQL
+INSERT INTO zona3DB.dbo.address
+SELECT a.* FROM ECOMMERCE.dbo.address a
+WHERE a.state IN ('Morelos','Veracruz');
+
+INSERT INTO zona3DB.dbo.customer
+SELECT c.* FROM ECOMMERCE.dbo.customer c
+WHERE EXISTS (SELECT 1 FROM ECOMMERCE.dbo.customerAddress ca
+JOIN zona3DB.dbo.address a ON ca.addressID = a.addressID
+WHERE ca.customerID = c.customerID);
+
+INSERT INTO zona3DB.dbo.customerAddress
+SELECT ca.* FROM ECOMMERCE.dbo.customerAddress ca
+JOIN zona3DB.dbo.customer c ON ca.customerID = c.customerID
+JOIN zona3DB.dbo.address a ON ca.addressID = a.addressID;
+
+INSERT INTO zona3DB.dbo.customerOrder
+SELECT co.* FROM ECOMMERCE.dbo.customerOrder co
+WHERE EXISTS (SELECT 1 FROM zona3DB.dbo.customer c
+WHERE c.customerID = co.customerID);
+````
 
    TODO script SQL
 📘 ¿Qué se refuerza?
@@ -413,6 +513,7 @@ WHERE c.customerID = co.customerID);
 ✔ Consultas tipo examen universitario / técnico
 
 Dime qué quieres, cómo lo quieres y lo armamos 💪 🚀
+
 
 
 
