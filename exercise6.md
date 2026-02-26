@@ -15,37 +15,6 @@ La práctica se basa en el modelo relacional de la base de datos base de datos *
 
 Nota. Sigue el ejemplo para preparar tu entregable.
 
-Ejemplo
----------------
-0. Proceso para construir el fragmento 1 de la base de datos salesbd.
-   
-**Esquema del fragmento** ✅
-
-![Modelo relacional salesdb](salesdb.png)
-
-**Script para crear fragmento** ✅
-
-```sql
-   SELECT *
-     FROM mi_tablas
-    WHERE condicion_1
-```
-
-**Scripts para descargar los datos de la base de datos salesbd.** 📌
-
-```sql
-   SELECT *
-     FROM mi_tablas
-    WHERE condicion_1
-```
-
-**Scripts para cargar los datos al fragmento 1.** 📌
-
-```sql
-   INSERT INTO mi_tablas
-    FROM origen_1
-```
-
 
 Fragmentos verticales
 ------------------------
@@ -53,6 +22,7 @@ Fragmentos verticales
    
 **Esquema del fragmento** ✅
 
+<img width="1195" height="665" alt="image" src="https://github.com/user-attachments/assets/ea3e7db1-9556-4995-bf77-332ed0766f92" />
 
 
 **Script para crear fragmento** ✅
@@ -61,40 +31,118 @@ Fragmentos verticales
 CREATE DATABASE customerDB;
 USE customerDB;
 
-CREATE TABLE customer
-(
+CREATE TABLE address (
+    addressID INT PRIMARY KEY,
+    street NVARCHAR(100),
+    locality NVARCHAR(100),
+    city NVARCHAR(100),
+    postcode NVARCHAR(10),
+    state NVARCHAR(50)
+);
+
+CREATE TABLE customer (
     customerID INT PRIMARY KEY,
-    name       NVARCHAR(100),
-    phone      NVARCHAR(20),
-    email      NVARCHAR(100),
-    addressID  INT
+    name NVARCHAR(100),
+    phone NVARCHAR(20),
+    email NVARCHAR(100),
+    addressID INT
+);
+
+CREATE TABLE customerAddress (
+    customerAddressID INT PRIMARY KEY,
+    customerID INT,
+    addressID INT,
+    type NVARCHAR(50),
+    position NVARCHAR(50)
+);
+
+CREATE TABLE customerOrder (
+    orderID INT PRIMARY KEY,
+    customerID INT,
+    date DATE,
+    total DECIMAL(10,2),
+    paymentMethod NVARCHAR(50),
+    status NVARCHAR(50)
+);
+
+CREATE TABLE product (
+    productID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    type NVARCHAR(50),
+    amount INT,
+    price DECIMAL(10,2),
+    detail NVARCHAR(255),
+    supplierID INT
+);
+
+CREATE TABLE orderProduct (
+    orderProductID INT PRIMARY KEY,
+    orderID INT,
+    productID INT,
+    quantity INT,
+    price DECIMAL(10,2)
 );
 ````
 
 **Scripts para descargar los datos de la base de datos salesbd.** 📌
 
 ````CMD
+bcp "SELECT * FROM ECOMMERCE.dbo.address" queryout "C:\Users\royes\Desktop\cust_address.csv" -c -t, -r\n -S localhost -T
 bcp "SELECT * FROM customer" queryout "C:\Users\royes\Desktop\fragcustomertrue.csv" -c -t, -r\n -S localhost -d ECOMMERCE -T
+bcp "SELECT * FROM ECOMMERCE.dbo.customerAddress" queryout "C:\Users\royes\Desktop\cust_customerAddress.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM ECOMMERCE.dbo.customerOrder" queryout "C:\Users\royes\Desktop\cust_customerOrder.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM ECOMMERCE.dbo.product" queryout "C:\Users\royes\Desktop\cust_product.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM ECOMMERCE.dbo.orderProduct" queryout "C:\Users\royes\Desktop\cust_orderProduct.csv" -c -t, -r\n -S localhost -T
 ````
 
 **Scripts para cargar los datos al fragmento 1.** 📌
 
 ````SQL
-BULK INSERT customer.dbo.customer
-FROM 'C:\Users\royes\Desktop\fragcustomertrue.csv'
-WITH (
-    FIELDTERMINATOR = ',',
-    ROWTERMINATOR = '\n',
-    CODEPAGE = '65001'
-);
+BULK INSERT customerDB.dbo.address
+FROM 'C:\Users\royes\Desktop\cust_address.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT customerDB.dbo.customer
+FROM 'C:\Users\royes\Desktop\cust_customer.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT customerDB.dbo.customerAddress
+FROM 'C:\Users\royes\Desktop\cust_customerAddress.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT customerDB.dbo.customerOrder
+FROM 'C:\Users\royes\Desktop\cust_customerOrder.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT customerDB.dbo.product
+FROM 'C:\Users\royes\Desktop\cust_product.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT customerDB.dbo.orderProduct
+FROM 'C:\Users\royes\Desktop\cust_orderProduct.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
 ````
 
 **Alternativa sencilla SQL server**
 
 ````SQL
+INSERT INTO customerDB.dbo.address
+SELECT * FROM ECOMMERCE.dbo.address;
+
 INSERT INTO customerDB.dbo.customer
-SELECT customerID, name, phone, email, addressID
-FROM ECOMMERCE.dbo.customer;
+SELECT * FROM ECOMMERCE.dbo.customer;
+
+INSERT INTO customerDB.dbo.customerAddress
+SELECT * FROM ECOMMERCE.dbo.customerAddress;
+
+INSERT INTO customerDB.dbo.customerOrder
+SELECT * FROM ECOMMERCE.dbo.customerOrder;
+
+INSERT INTO customerDB.dbo.product
+SELECT * FROM ECOMMERCE.dbo.product;
+
+INSERT INTO customerDB.dbo.orderProduct
+SELECT * FROM ECOMMERCE.dbo.orderProduct;
 ````
 
    
@@ -102,7 +150,8 @@ FROM ECOMMERCE.dbo.customer;
    
 **Esquema del fragmento** ✅
 
-	TODO esquem
+<img width="823" height="703" alt="image" src="https://github.com/user-attachments/assets/78334bb3-56fa-4083-9c67-389662e0a8a1" />
+
 
 **Script para crear fragmento** ✅
 
@@ -110,40 +159,85 @@ FROM ECOMMERCE.dbo.customer;
 CREATE DATABASE supplierDB;
 USE supplierDB;
 
-CREATE TABLE supplier
-(
+CREATE TABLE address (
+    addressID INT PRIMARY KEY,
+    street NVARCHAR(100),
+    locality NVARCHAR(100),
+    city NVARCHAR(100),
+    postcode NVARCHAR(10),
+    state NVARCHAR(50)
+);
+
+CREATE TABLE supplier (
     supplierID INT PRIMARY KEY,
-    name       NVARCHAR(100),
-    phone      NVARCHAR(20),
-    email      NVARCHAR(100),
-    addressID  INT
+    name NVARCHAR(100),
+    phone NVARCHAR(20),
+    email NVARCHAR(100),
+    addressID INT
+);
+
+CREATE TABLE product (
+    productID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    type NVARCHAR(50),
+    amount INT,
+    price DECIMAL(10,2),
+    detail NVARCHAR(255),
+    supplierID INT
+);
+
+CREATE TABLE orderProduct (
+    orderProductID INT PRIMARY KEY,
+    orderID INT,
+    productID INT,
+    quantity INT,
+    price DECIMAL(10,2)
 );
 ````
 
 **Scripts para descargar los datos de la base de datos salesbd.** 📌
 
 ````CMD
-bcp "SELECT * FROM supplier" queryout "C:\Users\royes\Desktop\fragsuppliertrue.csv" -c -t, -r\n -S localhost -d ECOMMERCE -T
+bcp "SELECT * FROM ECOMMERCE.dbo.address" queryout "C:\Users\royes\Desktop\supp_address.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM ECOMMERCE.dbo.supplier" queryout "C:\Users\royes\Desktop\supp_supplier.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM ECOMMERCE.dbo.product" queryout "C:\Users\royes\Desktop\supp_product.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM ECOMMERCE.dbo.orderProduct" queryout "C:\Users\royes\Desktop\supp_orderProduct.csv" -c -t, -r\n -S localhost -T
 ````
 
 **Scripts para cargar los datos al fragmento 1.** 📌
 
 ````SQL
+BULK INSERT supplierDB.dbo.address
+FROM 'C:\Users\royes\Desktop\supp_address.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
 BULK INSERT supplierDB.dbo.supplier
-FROM 'C:\Users\royes\Desktop\fragsuppliertrue.csv'
-WITH (
-    FIELDTERMINATOR = ',',
-    ROWTERMINATOR = '\n',
-    CODEPAGE = '65001'
-);
+FROM 'C:\Users\royes\Desktop\supp_supplier.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT supplierDB.dbo.product
+FROM 'C:\Users\royes\Desktop\supp_product.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT supplierDB.dbo.orderProduct
+FROM 'C:\Users\royes\Desktop\supp_orderProduct.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
 ````
 
 **Alternativa sencilla SQL server**
 
 ````SQL
+INSERT INTO supplierDB.dbo.address
+SELECT * FROM ECOMMERCE.dbo.address;
+
 INSERT INTO supplierDB.dbo.supplier
-SELECT supplierID, name, phone, email, addressID
-FROM ECOMMERCE.dbo.supplier;
+SELECT * FROM ECOMMERCE.dbo.supplier;
+
+INSERT INTO supplierDB.dbo.product
+SELECT * FROM ECOMMERCE.dbo.product;
+
+INSERT INTO supplierDB.dbo.orderProduct
+SELECT * FROM ECOMMERCE.dbo.orderProduct;
 ````
    
 Fragmentos horizontales
@@ -152,7 +246,8 @@ Fragmentos horizontales
    
 **Esquema del fragmento** ✅
 
-	TODO esquema
+<img width="969" height="660" alt="image" src="https://github.com/user-attachments/assets/8df720db-b566-4b80-b9d8-6edbf3235d6d" />
+
 
 **Script para crear fragmento** ✅
 
@@ -272,7 +367,8 @@ WHERE c.customerID = co.customerID);
    
 **Esquema del fragmento** ✅
 
-	TODO esquema
+<img width="831" height="540" alt="image" src="https://github.com/user-attachments/assets/4b6704cf-0c08-4423-a21d-6ce9c8443cc4" />
+
 
 **Script para crear fragmento** ✅
 
@@ -391,7 +487,8 @@ WHERE c.customerID = co.customerID);
    
 **Esquema del fragmento** ✅
 
-	TODO esquema
+<img width="831" height="540" alt="image" src="https://github.com/user-attachments/assets/f503d249-1c52-4a6e-ba21-266623aada5d" />
+
 
 **Script para crear fragmento** ✅
 
@@ -507,15 +604,16 @@ WHERE c.customerID = co.customerID);
 
    TODO script SQL
 📘 ¿Qué se refuerza?
-✔ Lectura de esquemas
-✔ Lógica de negocio
-✔ Subconsultas
-✔ Consultas tipo examen universitario / técnico
+1. Fragmentación de bases de datos distribuidas, tanto horizontal como vertical.
 
-Dime qué quieres, cómo lo quieres y lo armamos 💪 🚀
+2. Identificación de subesquemas funcionales, separando correctamente la información de clientes y proveedores.
 
+3. Mantenimiento de la integridad lógica entre tablas relacionadas sin depender necesariamente de claves foráneas físicas.
 
+4. Análisis de dependencias entre tablas, para determinar qué relaciones deben permanecer dentro de un mismo fragmento.
 
+5. Uso de herramientas de SQL Server como BCP, BULK INSERT e instrucciones INSERT INTO ... SELECT para la migración de datos.
 
+6. Diseño de bases de datos distribuidas, priorizando coherencia, consistencia y escalabilidad.
 
-
+7.Justificación técnica del diseño, explicando decisiones de fragmentación de manera formal y defendible.
