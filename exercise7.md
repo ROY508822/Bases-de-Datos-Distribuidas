@@ -335,7 +335,7 @@ GO
 
 From the command line, we can extract information from a table in a MySQL database and store the content in a plain text file. 
 In the following example, data is extracted from the customer table in the salesDB database and saved in the customer.txt file.
-```
+``` SQL
 bcp "SELECT * FROM salesDB.dbo.address" queryout "C:\Users\royes\Desktop\cust_address.txt" -c -t, -r\n -S localhost -T
 
 bcp "SELECT * FROM salesDB.dbo.customer" queryout "C:\Users\royes\Desktop\fragcustomertrue.txt" -c -t, -r\n -S localhost -T
@@ -400,7 +400,7 @@ Another option to extract and load tables form diferent databases (ONLY SQL SERV
 SET IDENTITY_INSERT customerDB.dbo.address ON;
 
 INSERT INTO customerDB.dbo.address (addressID, street, locality, city, postcode, state)
-SELECT addressID, street, locality, city, postcode, state
+SELECT addressID, street, localy, city, postcode, state
 FROM salesDB.dbo.address;
 
 SET IDENTITY_INSERT customerDB.dbo.address OFF;
@@ -458,62 +458,148 @@ SET IDENTITY_INSERT customerDB.dbo.orderProduct OFF;
 
 ```mermaid
 erDiagram
+
     address {
         int addressID PK
         string street
+        string locality
         string city
+        string postcode
         string state
-        string zipCode
-        string country
     }
 
     supplier {
         int supplierID PK
         string name
-        string contactName
-        string email
         string phone
+        string email
         int addressID FK
     }
 
     product {
         int productID PK
-        int supplierID FK
         string name
-        string description
+        string type
+        int amount
         decimal price
-        int stock
+        string detail
+        int supplierID FK
     }
 
+    address ||--o{ supplier : "location of"
+
     supplier ||--o{ product : "supplies"
-    address ||--o{ supplier : "used in"
+```
+
+### ✅ SQL scripts to create a fragment supplierDB in MySQL.
+
+To create the database **supplierDB** use following command:
+
+```sql
+CREATE DATABASE supplierDB;
+```
+To create the database tables, you must use the following commands:
+
+```sql
+USE supplierDB;
+GO
+
+CREATE TABLE address (
+    addressID INT IDENTITY(1,1) NOT NULL,
+    street NVARCHAR(100) NOT NULL,
+    locality NVARCHAR(100) NOT NULL,
+    city NVARCHAR(100) NOT NULL,
+    postcode NVARCHAR(10) NOT NULL,
+    state NVARCHAR(50) NOT NULL,
+    CONSTRAINT pk_address PRIMARY KEY (addressID)
+);
+GO
+
+CREATE TABLE supplier (
+    supplierID INT IDENTITY(1,1) NOT NULL,
+    name NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(20),
+    email NVARCHAR(100) NOT NULL,
+    addressID INT NOT NULL,
+    CONSTRAINT pk_supplier PRIMARY KEY (supplierID),
+    CONSTRAINT fk_supplier_address
+        FOREIGN KEY (addressID)
+        REFERENCES address(addressID)
+);
+GO
+
+CREATE TABLE product (
+    productID INT IDENTITY(1,1) NOT NULL,
+    name NVARCHAR(100) NOT NULL,
+    type NVARCHAR(50),
+    amount INT NOT NULL DEFAULT 0,
+    price DECIMAL(10,2) NOT NULL,
+    detail NVARCHAR(255),
+    supplierID INT NOT NULL,
+    CONSTRAINT pk_product PRIMARY KEY (productID),
+    CONSTRAINT fk_product_supplier
+        FOREIGN KEY (supplierID)
+        REFERENCES supplier(supplierID)
+);
+GO
 ```
 
 ### 📌 Scripts for downloading data from the **salesBD** database in CSV format.
 
-Extract the data from the supplier table using the _SELECT INTO OUTFILE_ command from the MySQL server, as follows:
+Another option is to download the table content into a file in CSV format:
 
 ```sql
-   mysql> 
-          SELECT supplierID, name, contactName, email, phone, addressID
-            FROM supplier
-            INTO OUTFILE '/tmp/supplier.csv'
-            FIELDS TERMINATED BY ','
-            ENCLOSED BY '"'
-            LINES TERMINATED BY '\n';
+bcp "SELECT * FROM salesDB.dbo.address" queryout "C:\Users\royes\Desktop\supplier_address.csv" -c -t, -r\n -S localhost -T
+
+bcp "SELECT * FROM salesDB.dbo.supplier" queryout "C:\Users\royes\Desktop\supplier_supplier.csv" -c -t, -r\n -S localhost -T
+
+bcp "SELECT * FROM salesDB.dbo.product" queryout "C:\Users\royes\Desktop\supplier_product.csv" -c -t, -r\n -S localhost -T
 ```
 
 ### 📌 Scripts for loading data from the CSV format files to database customerDB.
 
 ```sql
-   mysql>
-          LOAD DATA LOCAL INFILE '/tmp/supplier.csv' 
-            INTO TABLE supplier
-            FIELDS TERMINATED BY ','
-            ENCLOSED BY '"'
-            LINES TERMINATED BY '\n';
+BULK INSERT supplierDB.dbo.address
+FROM 'C:\Users\royes\Desktop\supplier_address.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT supplierDB.dbo.supplier
+FROM 'C:\Users\royes\Desktop\supplier_supplier.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
+
+BULK INSERT supplierDB.dbo.product
+FROM 'C:\Users\royes\Desktop\supplier_product.csv'
+WITH (FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', CODEPAGE = '65001');
 ```
 
-🚀 Tell me what you want, how you want it, and we'll put it together. 💪 
+Another option to extract and load tables form diferent databases (ONLY SQL SERVER)
+
+````SQL
+SET IDENTITY_INSERT supplierDB.dbo.address ON;
+
+INSERT INTO supplierDB.dbo.address (addressID, street, locality, city, postcode, state)
+SELECT addressID, street, localy, city, postcode, state
+FROM salesDB.dbo.address;
+
+SET IDENTITY_INSERT supplierDB.dbo.address OFF;
+
+
+SET IDENTITY_INSERT supplierDB.dbo.supplier ON;
+
+INSERT INTO supplierDB.dbo.supplier (supplierID, name, phone, email, addressID)
+SELECT supplierID, name, phone, email, addressID
+FROM salesDB.dbo.supplier;
+
+SET IDENTITY_INSERT supplierDB.dbo.supplier OFF;
+
+
+SET IDENTITY_INSERT supplierDB.dbo.product ON;
+
+INSERT INTO supplierDB.dbo.product (productID, name, type, amount, price, detail, supplierID)
+SELECT productID, name, type, amount, price, detail, supplierID
+FROM salesDB.dbo.product;
+
+SET IDENTITY_INSERT supplierDB.dbo.product OFF;
+````
 
 
