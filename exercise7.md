@@ -336,7 +336,7 @@ GO
 From the command line, we can extract information from a table in a MySQL database and store the content in a plain text file. 
 In the following example, data is extracted from the customer table in the salesDB database and saved in the customer.txt file.
 ``` SQL
-bcp "SELECT * FROM salesDB.dbo.address" queryout "C:\Users\royes\Desktop\cust_address.txt" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.address a WHERE exists(SELECT 1 FROM salesDB.dbo.customeraddress ca where a.addressID = ca.addressID)" queryout "C:\Users\royes\Desktop\cust_address.txt" -c -t, -r\n -S localhost -T
 
 bcp "SELECT * FROM salesDB.dbo.customer" queryout "C:\Users\royes\Desktop\fragcustomertrue.txt" -c -t, -r\n -S localhost -T
 
@@ -353,7 +353,7 @@ Another option is to download the table content into a file in CSV format
 with the _SELECT INTO OUTFILE_ statement as follows:
 
 ```sql
-bcp "SELECT * FROM salesDB.dbo.address" queryout "C:\Users\royes\Desktop\cust_address.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.address a WHERE exists(SELECT 1 FROM salesDB.dbo.customeraddress ca where a.addressID = ca.addressID)" queryout "C:\Users\royes\Desktop\cust_address.csv" -c -t, -r\n -S localhost -T
 
 bcp "SELECT * FROM salesDB.dbo.customer" queryout "C:\Users\royes\Desktop\fragcustomertrue.csv" -c -t, -r\n -S localhost -T
 
@@ -400,8 +400,8 @@ Another option to extract and load tables form diferent databases (ONLY SQL SERV
 SET IDENTITY_INSERT customerDB.dbo.address ON;
 
 INSERT INTO customerDB.dbo.address (addressID, street, locality, city, postcode, state)
-SELECT addressID, street, localy, city, postcode, state
-FROM salesDB.dbo.address;
+SELECT * FROM salesDB.dbo.address a
+WHERE exists(SELECT 1 FROM salesDB.dbo.customeraddress ca where a.addressID = ca.addressID);
 
 SET IDENTITY_INSERT customerDB.dbo.address OFF;
 
@@ -549,7 +549,7 @@ GO
 Another option is to download the table content into a file in CSV format:
 
 ```sql
-bcp "SELECT * FROM salesDB.dbo.address" queryout "C:\Users\royes\Desktop\supplier_address.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.address a WHERE exists(SELECT 1 FROM salesDB.dbo.supplier s where a.addressID = s.addressID)" queryout "C:\Users\royes\Desktop\supplier_address.csv" -c -t, -r\n -S localhost -T
 
 bcp "SELECT * FROM salesDB.dbo.supplier" queryout "C:\Users\royes\Desktop\supplier_supplier.csv" -c -t, -r\n -S localhost -T
 
@@ -578,8 +578,8 @@ Another option to extract and load tables form diferent databases (ONLY SQL SERV
 SET IDENTITY_INSERT supplierDB.dbo.address ON;
 
 INSERT INTO supplierDB.dbo.address (addressID, street, locality, city, postcode, state)
-SELECT addressID, street, localy, city, postcode, state
-FROM salesDB.dbo.address;
+SELECT * FROM salesDB.dbo.address a
+WHERE exists(SELECT 1 FROM salesDB.dbo.supplier s where a.addressID = s.addressID)
 
 SET IDENTITY_INSERT supplierDB.dbo.address OFF;
 
