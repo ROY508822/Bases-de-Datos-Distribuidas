@@ -602,4 +602,36 @@ FROM salesDB.dbo.product;
 SET IDENTITY_INSERT supplierDB.dbo.product OFF;
 ````
 
+### Script to reconstruct salesDB
 
+```` SQL
+SELECT
+    t.name AS [Tabla],
+    SUM(p.rows) AS [Registros],
+    CAST(SUM(a.total_pages) * 8.0 * 1024 / SUM(p.rows) AS INT) AS [Tamaño fila (bytes)],
+    ROUND(SUM(a.data_pages) * 8.0 / 1024, 2) AS [Datos (MB)],
+    ROUND((SUM(a.used_pages) - SUM(a.data_pages)) * 8.0 / 1024, 2) AS [Índices (MB)],
+    ROUND(SUM(a.total_pages) * 8.0 / 1024, 2) AS [Total (MB)]
+FROM sys.tables t
+JOIN sys.indexes i
+    ON t.object_id = i.object_id
+JOIN sys.partitions p
+    ON i.object_id = p.object_id
+    AND i.index_id = p.index_id
+JOIN sys.allocation_units a
+    ON p.partition_id = a.container_id
+WHERE t.is_ms_shipped = 0
+GROUP BY t.name
+ORDER BY [Registros] DESC;
+GO
+````
+
+| Tabla            | Registros | Tamaño fila (bytes) | Datos (MB) | Índices (MB) | Total (MB) |
+|------------------|-----------|---------------------|------------|--------------|------------|
+| address          | 111       | 664                 | 0.02       | 0.02         | 0.07       |
+| customerAddress  | 110       | 670                 | 0.01       | 0.01         | 0.07       |
+| customerOrder    | 101       | 729                 | 0.01       | 0.01         | 0.07       |
+| orderProduct     | 100       | 737                 | 0.01       | 0.01         | 0.07       |
+| product          | 100       | 737                 | 0.02       | 0.02         | 0.07       |
+| supplier         | 100       | 737                 | 0.02       | 0.02         | 0.07       |
+| customer         | 100       | 737                 | 0.02       | 0.02         | 0.07       |
