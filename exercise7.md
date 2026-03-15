@@ -605,11 +605,10 @@ SET IDENTITY_INSERT supplierDB.dbo.product OFF;
 ### Script to reconstruct salesDB
 
 ````SQL
-CREATE DATABASE salesDB2
+CREATE DATABASE salesDB2;
+GO
 
-USE salesDB2
-
-  USE salesDB2;
+USE salesDB2;
 GO
 
 CREATE TABLE address (
@@ -633,7 +632,13 @@ CREATE TABLE customerAddress (
     customerID INT,
     addressID INT,
     type NVARCHAR(50),
-    position NVARCHAR(50)
+    position INT,
+    CONSTRAINT FK_customerAddress_customer
+        FOREIGN KEY (customerID)
+        REFERENCES customer(customerID),
+    CONSTRAINT FK_customerAddress_address
+        FOREIGN KEY (addressID)
+        REFERENCES address(addressID)
 );
 
 CREATE TABLE supplier (
@@ -641,7 +646,10 @@ CREATE TABLE supplier (
     name NVARCHAR(100),
     phone NVARCHAR(20),
     email NVARCHAR(100),
-    addressID INT
+    addressID INT,
+    CONSTRAINT FK_supplier_address
+        FOREIGN KEY (addressID)
+        REFERENCES address(addressID)
 );
 
 CREATE TABLE product (
@@ -651,7 +659,10 @@ CREATE TABLE product (
     amount INT,
     price DECIMAL(10,2),
     detail NVARCHAR(255),
-    supplierID INT
+    supplierID INT,
+    CONSTRAINT FK_product_supplier
+        FOREIGN KEY (supplierID)
+        REFERENCES supplier(supplierID)
 );
 
 CREATE TABLE customerOrder (
@@ -660,7 +671,10 @@ CREATE TABLE customerOrder (
     date DATE,
     total DECIMAL(10,2),
     paymentMethod NVARCHAR(50),
-    status NVARCHAR(50)
+    status NVARCHAR(50),
+    CONSTRAINT FK_customerOrder_customer
+        FOREIGN KEY (customerID)
+        REFERENCES customer(customerID)
 );
 
 CREATE TABLE orderProduct (
@@ -668,7 +682,13 @@ CREATE TABLE orderProduct (
     orderID INT,
     productID INT,
     quantity INT,
-    price DECIMAL(10,2)
+    price DECIMAL(10,2),
+    CONSTRAINT FK_orderProduct_order
+        FOREIGN KEY (orderID)
+        REFERENCES customerOrder(orderID),
+    CONSTRAINT FK_orderProduct_product
+        FOREIGN KEY (productID)
+        REFERENCES product(productID)
 );
 
 INSERT INTO salesDB2.dbo.address
