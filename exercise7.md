@@ -691,41 +691,36 @@ CREATE TABLE orderProduct (
         REFERENCES product(productID)
 );
 
-INSERT INTO salesDB2.dbo.address
-SELECT *
-FROM customerDB.dbo.address;
+INSERT INTO salesDB2.dbo.customer
+SELECT * FROM customerDB_test.dbo.customer;
 
 INSERT INTO salesDB2.dbo.address
 SELECT *
-FROM supplierDB.dbo.address s
+FROM customerDB_test.dbo.address a
 WHERE NOT EXISTS (
     SELECT 1
-    FROM supplierDB2.dbo.address a
-    WHERE a.addressID = s.addressID
+    FROM salesDB2.dbo.address b
+    WHERE b.addressID = a.addressID
 );
 
-
-INSERT INTO salesDB2.dbo.customer
-SELECT * FROM customerDB.dbo.customer;
-
 INSERT INTO salesDB2.dbo.customerAddress
-SELECT * FROM customerDB.dbo.customerAddress;
+SELECT * FROM customerDB_test.dbo.customerAddress;
 
-INSERT INTO saleseDB2.dbo.supplier
-SELECT * FROM supplierDB.dbo.supplier;
+INSERT INTO salesDB2.dbo.supplier
+SELECT * FROM supplierDB_test.dbo.supplier;
 
 INSERT INTO salesDB2.dbo.product
-SELECT * FROM supplierDB.dbo.product
+SELECT * FROM supplierDB_test.dbo.product
 
 UNION
 
-SELECT * FROM customerDB.dbo.product;
+SELECT * FROM customerDB_test.dbo.product;
 
 INSERT INTO salesDB2.dbo.customerOrder
-SELECT * FROM customerDB.dbo.customerOrder;
+SELECT * FROM customerDB_test.dbo.customerOrder;
 
 INSERT INTO salesDB2.dbo.orderProduct
-SELECT * FROM customerDB.dbo.orderProduct;
+SELECT * FROM customerDB_test.dbo.orderProduct;
 ````
 ### Check description to the database 
 
