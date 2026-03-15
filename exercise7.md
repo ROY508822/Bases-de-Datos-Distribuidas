@@ -25,37 +25,37 @@ To restore the backup, use the following process.
 ```
 4. Verify that the restoration process was complete. Generate the general statistics report with the following script:
 ```sql
-   SELECT
-    t.name AS [Tabla],
-    SUM(p.rows) AS [Registros],
-    CAST(SUM(a.total_pages) * 8.0 * 1024 / SUM(p.rows) AS INT) AS [Tamaño fila (bytes)],
-    ROUND(SUM(a.data_pages) * 8.0 / 1024, 2) AS [Datos (MB)],
-    ROUND((SUM(a.used_pages) - SUM(a.data_pages)) * 8.0 / 1024, 2) AS [Índices (MB)],
-    ROUND(SUM(a.total_pages) * 8.0 / 1024, 2) AS [Total (MB)]
+SELECT
+    t.name AS Tabla,
+    MAX(p.rows) AS Registros,
+    CAST((SUM(a.data_pages) * 8.0 * 1024) / MAX(p.rows) AS INT) AS [Tuple size (bytes)],
+    CAST(SUM(a.data_pages) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Datos (MB)],
+    CAST((SUM(a.used_pages) - SUM(a.data_pages)) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Índices (MB)],
+    CAST(SUM(a.used_pages) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Total (MB)]
 FROM sys.tables t
 JOIN sys.indexes i
-    ON t.object_id = i.object_id
+     ON t.object_id = i.object_id
 JOIN sys.partitions p
-    ON i.object_id = p.object_id
+     ON i.object_id = p.object_id
     AND i.index_id = p.index_id
 JOIN sys.allocation_units a
-    ON p.partition_id = a.container_id
-WHERE t.is_ms_shipped = 0
+     ON p.partition_id = a.container_id
+WHERE i.index_id <= 1
 GROUP BY t.name
-ORDER BY [Registros] DESC;
-GO
+ORDER BY Registros DESC;
 ```
 The result should be identical to the following table:
 
-| Tabla           | Registros | Tamaño fila (bytes) | Datos (MB) | Índices (MB) | Total (MB) |
-|-----------------|-----------|---------------------|------------|--------------|------------|
-| product         | 400       | 368                 | 0.02       | 0.02         | 0.14       |
-| customeraddress | 330       | 670                 | 0.02       | 0.02         | 0.21       |
-| orderproduct    | 300       | 737                 | 0.02       | 0.02         | 0.21       |
-| customerorder   | 202       | 729                 | 0.02       | 0.02         | 0.14       |
-| customer        | 200       | 737                 | 0.02       | 0.02         | 0.14       |
-| supplier        | 200       | 737                 | 0.02       | 0.02         | 0.14       |
-| address         | 100       | 737                 | 0.02       | 0.02         | 0.07       |
+| Tabla           | Registros | Tuple size (bytes) | Datos (MB) | Índices (MB) | Total (MB) |
+| --------------- | --------- | ------------------ | ---------- | ------------ | ---------- |
+| customeraddress | 110       | 74                 | 0.01       | 0.01         | 0.02       |
+| customerorder   | 101       | 81                 | 0.01       | 0.01         | 0.02       |
+| orderproduct    | 100       | 81                 | 0.01       | 0.01         | 0.02       |
+| product         | 100       | 163                | 0.02       | 0.02         | 0.03       |
+| supplier        | 100       | 163                | 0.02       | 0.02         | 0.03       |
+| address         | 100       | 163                | 0.02       | 0.02         | 0.03       |
+| customer        | 100       | 245                | 0.02       | 0.02         | 0.04       |
+
 
 The restored backup has a design error in the **customer** table.
 Obtain the schema definition of the customer table with the following command:
@@ -604,34 +604,139 @@ SET IDENTITY_INSERT supplierDB.dbo.product OFF;
 
 ### Script to reconstruct salesDB
 
+````SQL
+CREATE DATABASE salesDB2
+
+USE salesDB2
+
+  USE salesDB2;
+GO
+
+CREATE TABLE address (
+    addressID INT PRIMARY KEY,
+    street NVARCHAR(100),
+    locality NVARCHAR(100),
+    city NVARCHAR(100),
+    postcode NVARCHAR(10),
+    state NVARCHAR(50)
+);
+
+CREATE TABLE customer (
+    customerID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    phone NVARCHAR(20),
+    email NVARCHAR(100)
+);
+
+CREATE TABLE customerAddress (
+    customerAddressID INT PRIMARY KEY,
+    customerID INT,
+    addressID INT,
+    type NVARCHAR(50),
+    position NVARCHAR(50)
+);
+
+CREATE TABLE supplier (
+    supplierID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    phone NVARCHAR(20),
+    email NVARCHAR(100),
+    addressID INT
+);
+
+CREATE TABLE product (
+    productID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    type NVARCHAR(50),
+    amount INT,
+    price DECIMAL(10,2),
+    detail NVARCHAR(255),
+    supplierID INT
+);
+
+CREATE TABLE customerOrder (
+    orderID INT PRIMARY KEY,
+    customerID INT,
+    date DATE,
+    total DECIMAL(10,2),
+    paymentMethod NVARCHAR(50),
+    status NVARCHAR(50)
+);
+
+CREATE TABLE orderProduct (
+    orderProductID INT PRIMARY KEY,
+    orderID INT,
+    productID INT,
+    quantity INT,
+    price DECIMAL(10,2)
+);
+
+INSERT INTO salesDB2.dbo.address
+SELECT *
+FROM customerDB.dbo.address;
+
+INSERT INTO salesDB2.dbo.address
+SELECT *
+FROM supplierDB.dbo.address s
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM supplierDB2.dbo.address a
+    WHERE a.addressID = s.addressID
+);
+
+
+INSERT INTO salesDB2.dbo.customer
+SELECT * FROM customerDB.dbo.customer;
+
+INSERT INTO salesDB2.dbo.customerAddress
+SELECT * FROM customerDB.dbo.customerAddress;
+
+INSERT INTO saleseDB2.dbo.supplier
+SELECT * FROM supplierDB.dbo.supplier;
+
+INSERT INTO salesDB2.dbo.product
+SELECT * FROM supplierDB.dbo.product
+
+UNION
+
+SELECT * FROM customerDB.dbo.product;
+
+INSERT INTO salesDB2.dbo.customerOrder
+SELECT * FROM customerDB.dbo.customerOrder;
+
+INSERT INTO salesDB2.dbo.orderProduct
+SELECT * FROM customerDB.dbo.orderProduct;
+````
+### Check description to the database 
+
 ```` SQL
 SELECT
-    t.name AS [Tabla],
-    SUM(p.rows) AS [Registros],
-    CAST(SUM(a.total_pages) * 8.0 * 1024 / SUM(p.rows) AS INT) AS [Tamaño fila (bytes)],
-    ROUND(SUM(a.data_pages) * 8.0 / 1024, 2) AS [Datos (MB)],
-    ROUND((SUM(a.used_pages) - SUM(a.data_pages)) * 8.0 / 1024, 2) AS [Índices (MB)],
-    ROUND(SUM(a.total_pages) * 8.0 / 1024, 2) AS [Total (MB)]
+    t.name AS Tabla,
+    MAX(p.rows) AS Registros,
+    CAST((SUM(a.data_pages) * 8.0 * 1024) / MAX(p.rows) AS INT) AS [Tuple size (bytes)],
+    CAST(SUM(a.data_pages) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Datos (MB)],
+    CAST((SUM(a.used_pages) - SUM(a.data_pages)) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Índices (MB)],
+    CAST(SUM(a.used_pages) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Total (MB)]
 FROM sys.tables t
 JOIN sys.indexes i
-    ON t.object_id = i.object_id
+     ON t.object_id = i.object_id
 JOIN sys.partitions p
-    ON i.object_id = p.object_id
+     ON i.object_id = p.object_id
     AND i.index_id = p.index_id
 JOIN sys.allocation_units a
-    ON p.partition_id = a.container_id
-WHERE t.is_ms_shipped = 0
+     ON p.partition_id = a.container_id
+WHERE i.index_id <= 1
 GROUP BY t.name
-ORDER BY [Registros] DESC;
-GO
+ORDER BY Registros DESC;
 ````
 
-| Tabla            | Registros | Tamaño fila (bytes) | Datos (MB) | Índices (MB) | Total (MB) |
-|------------------|-----------|---------------------|------------|--------------|------------|
-| address          | 111       | 664                 | 0.02       | 0.02         | 0.07       |
-| customerAddress  | 110       | 670                 | 0.01       | 0.01         | 0.07       |
-| customerOrder    | 101       | 729                 | 0.01       | 0.01         | 0.07       |
-| orderProduct     | 100       | 737                 | 0.01       | 0.01         | 0.07       |
-| product          | 100       | 737                 | 0.02       | 0.02         | 0.07       |
-| supplier         | 100       | 737                 | 0.02       | 0.02         | 0.07       |
-| customer         | 100       | 737                 | 0.02       | 0.02         | 0.07       |
+| Tabla           | Registros | Tuple size (bytes) | Datos (MB) | Índices (MB) | Total (MB) |
+| --------------- | --------- | ------------------ | ---------- | ------------ | ---------- |
+| customerAddress | 110       | 74                 | 0.01       | 0.01         | 0.02       |
+| customerOrder   | 101       | 81                 | 0.01       | 0.01         | 0.02       |
+| orderProduct    | 100       | 81                 | 0.01       | 0.01         | 0.02       |
+| product         | 100       | 163                | 0.02       | 0.02         | 0.03       |
+| supplier        | 100       | 163                | 0.02       | 0.02         | 0.03       |
+| address         | 100       | 163                | 0.02       | 0.02         | 0.03       |
+| customer        | 100       | 163                | 0.02       | 0.02         | 0.03       |
+
