@@ -9,8 +9,10 @@ _______________________________
 For this exercise, the **salesBD** database is used to build the requested fragments.
 It uses the [database backup](https://github.com/edcrvl/courses/edit/main/databases/salesBD_bk.sql)  to build the two vertical fragments.
 
+**We use Windows 11 and SQL Server for this exercise also use CMD and DataGrip**
+
 To restore the backup, use the following process.
-1. Log in to the MySQL server.
+1. Log in to the SQL Server.
 ```
    sqlcmd -S localhost\SQLEXPRESS -E
 ```
@@ -19,7 +21,7 @@ To restore the backup, use the following process.
    CREATE DATABASE salesDB;
    GO
 ```
-3. To restore the salesBD_bk.sql file in the salesDB database, you must exit MySQL and execute the following command:
+3. To restore the salesBD_bk.sql file in the salesDB database, you must exit SQL Server and execute the following command:
 ```
    sqlcmd -S localhost\SQLEXPRESS -E -d salesDB -i C:\Users\royes\Downloads\salesBD_bk.sql
 ```
@@ -239,7 +241,7 @@ erDiagram
     product ||--o{ orderProduct : "included in"
 ```
 
-### ✅ SQL scripts to create a fragment customerDB in MySQL.
+### ✅ SQL scripts to create a fragment customerDB in SQL Server.
 
 To create the database **customerDB** use following command:
 
@@ -333,7 +335,7 @@ GO
 
 ### 📌 Scripts for downloading data from the **salesBD** database in CSV format.
 
-From the command line, we can extract information from a table in a MySQL database and store the content in a plain text file. 
+From the command line, we can extract information from a table in a SQL Server database and store the content in a plain text file. 
 In the following example, data is extracted from the customer table in the salesDB database and saved in the customer.txt file.
 ``` SQL
 bcp "SELECT * FROM salesDB.dbo.address a WHERE exists(SELECT 1 FROM salesDB.dbo.customeraddress ca where a.addressID = ca.addressID)" queryout "C:\Users\royes\Desktop\cust_address.txt" -c -t, -r\n -S localhost -T
@@ -491,7 +493,7 @@ erDiagram
     supplier ||--o{ product : "supplies"
 ```
 
-### ✅ SQL scripts to create a fragment supplierDB in MySQL.
+### ✅ SQL scripts to create a fragment supplierDB in SQL Server.
 
 To create the database **supplierDB** use following command:
 
