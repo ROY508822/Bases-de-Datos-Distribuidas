@@ -281,12 +281,11 @@ bcp "SELECT ca.customerAddressID, ca.customerID, ca.addressID, ca.type, ca.posit
 
 bcp "SELECT co.* FROM salesDB.dbo.customerOrder co JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerOrder_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT op.* FROM salesDB.dbo.orderProduct op JOIN salesDB.dbo.customerOrder co ON op.orderID = co.orderID JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\orderProduct_zona1.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT s.* FROM salesDB.dbo.supplier s JOIN salesDB.dbo.address a ON s.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\supplier_zona1.csv" -c -t, -r\n -S localhost -T
 
+bcp "SELECT p.* FROM salesDB.dbo.product p JOIN salesDB.dbo.supplier s ON p.supplierID = s.supplierID JOIN salesDB.dbo.address a ON s.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\product_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT * FROM salesDB.dbo.product" queryout "C:\Users\royes\Desktop\product_zona1.csv" -c -t, -r\n -S localhost -T
-
-bcp "SELECT * FROM salesDB.dbo.supplier" queryout "C:\Users\royes\Desktop\supplier_zona1.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT op.* FROM salesDB.dbo.orderProduct op JOIN salesDB.dbo.customerOrder co ON op.orderID = co.orderID JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID JOIN salesDB.dbo.product p ON op.productID = p.productID JOIN salesDB.dbo.supplier s ON p.supplierID = s.supplierID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\orderProduct_zona1.csv" -c -t, -r\n -S localhost -T
 ````
 
 ### 📌 Scripts for loading data from the CSV format files to database ZonaDB_1.
@@ -355,38 +354,56 @@ GO
 
 ````SQL
 INSERT INTO ZonaDB_1.dbo.address
-SELECT a.* FROM salesDB.dbo.address a
+SELECT a.*
+FROM salesDB.dbo.address a
 WHERE a.state IN ('CDMX', 'Hidalgo');
 
+SELECT * FROM address;
 
 INSERT INTO ZonaDB_1.dbo.customer
-SELECT DISTINCT c.* FROM salesDB.dbo.customer c
+SELECT DISTINCT c.*
+FROM salesDB.dbo.customer c
 JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID
 JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
 
+SELECT * FROM customer;
 
 INSERT INTO ZonaDB_1.dbo.customerAddress
-SELECT ca.* FROM salesDB.dbo.customerAddress ca
+SELECT ca.*
+FROM salesDB.dbo.customerAddress ca
 JOIN ZonaDB_1.dbo.customer c ON ca.customerID = c.customerID
 JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
 
-
-INSERT INTO ZonaDB_1.dbo.customerOrder
-SELECT co.* FROM salesDB.dbo.customerOrder co
-JOIN ZonaDB_1.dbo.customer c ON co.customerID = c.customerID;
-
-
-INSERT INTO ZonaDB_1.dbo.orderProduct
-SELECT op.* FROM salesDB.dbo.orderProduct op
-JOIN ZonaDB_1.dbo.customerOrder co ON op.orderID = co.orderID;
-
+SELECT * FROM customerAddress;
 
 INSERT INTO ZonaDB_1.dbo.supplier
-SELECT * FROM salesDB.dbo.supplier;
+SELECT s.*
+FROM salesDB.dbo.supplier s
+JOIN ZonaDB_1.dbo.address a ON s.addressID = a.addressID;
 
+SELECT * FROM supplier;
 
 INSERT INTO ZonaDB_1.dbo.product
-SELECT * FROM salesDB.dbo.product;
+SELECT p.*
+FROM salesDB.dbo.product p
+JOIN ZonaDB_1.dbo.supplier s ON p.supplierID = s.supplierID;
+
+SELECT * FROM product;
+
+INSERT INTO ZonaDB_1.dbo.customerOrder
+SELECT co.*
+FROM salesDB.dbo.customerOrder co
+JOIN ZonaDB_1.dbo.customer c ON co.customerID = c.customerID;
+
+SELECT * FROM customerOrder;
+
+INSERT INTO ZonaDB_1.dbo.orderProduct
+SELECT op.*
+FROM salesDB.dbo.orderProduct op
+JOIN ZonaDB_1.dbo.customerOrder co ON op.orderID = co.orderID
+JOIN ZonaDB_1.dbo.product p ON op.productID = p.productID;
+
+SELECT * FROM orderProduct;
 ````
 
    
