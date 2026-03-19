@@ -211,10 +211,7 @@ CREATE TABLE supplier (
     phone NVARCHAR(20),
     email NVARCHAR(100),
     addressID INT,
-    CONSTRAINT pk_supplier PRIMARY KEY (supplierID),
-    CONSTRAINT fk_supplier_address
-        FOREIGN KEY (addressID)
-        REFERENCES address(addressID)
+    CONSTRAINT pk_supplier PRIMARY KEY (supplierID)
 );
 GO
 
@@ -264,7 +261,7 @@ CREATE TABLE orderProduct (
 );
 GO
 
--- Identity no usado por problemas de consistencia en fragmentación; se recomienda usar identificadores globales
+-- Identity no usado por problemas de consistencia a la hora de fragmnetar se deberia de hacer un id global
 ````
  
 ### 📌 Scripts for downloading data from the **salesDB** database in CSV format.
@@ -279,13 +276,13 @@ bcp "SELECT DISTINCT c.* FROM salesDB.dbo.customer c JOIN salesDB.dbo.customerAd
 
 bcp "SELECT ca.customerAddressID, ca.customerID, ca.addressID, ca.type, ca.position FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerAddress_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT co.* FROM salesDB.dbo.customerOrder co JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerOrder_zona1.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT DISTINCT co.* FROM salesDB.dbo.customerOrder co JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerOrder_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT s.* FROM salesDB.dbo.supplier s JOIN salesDB.dbo.address a ON s.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\supplier_zona1.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.supplier" queryout "C:\Users\royes\Desktop\supplier_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT p.* FROM salesDB.dbo.product p JOIN salesDB.dbo.supplier s ON p.supplierID = s.supplierID JOIN salesDB.dbo.address a ON s.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\product_zona1.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.product" queryout "C:\Users\royes\Desktop\product_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT op.* FROM salesDB.dbo.orderProduct op JOIN salesDB.dbo.customerOrder co ON op.orderID = co.orderID JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID JOIN salesDB.dbo.product p ON op.productID = p.productID JOIN salesDB.dbo.supplier s ON p.supplierID = s.supplierID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\orderProduct_zona1.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT op.* FROM salesDB.dbo.orderProduct op JOIN salesDB.dbo.customerOrder co ON op.orderID = co.orderID JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\orderProduct_zona1.csv" -c -t, -r\n -S localhost -T
 ````
 
 ### 📌 Scripts for loading data from the CSV format files to database ZonaDB_1.
@@ -358,7 +355,7 @@ SELECT a.*
 FROM salesDB.dbo.address a
 WHERE a.state IN ('CDMX', 'Hidalgo');
 
-SELECT * FROM address;
+SELECT * FROM ZonaDB_1.dbo.address;
 
 INSERT INTO ZonaDB_1.dbo.customer
 SELECT DISTINCT c.*
@@ -366,7 +363,7 @@ FROM salesDB.dbo.customer c
 JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID
 JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
 
-SELECT * FROM customer;
+SELECT * FROM ZonaDB_1.dbo.customer;
 
 INSERT INTO ZonaDB_1.dbo.customerAddress
 SELECT ca.*
@@ -374,36 +371,33 @@ FROM salesDB.dbo.customerAddress ca
 JOIN ZonaDB_1.dbo.customer c ON ca.customerID = c.customerID
 JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
 
-SELECT * FROM customerAddress;
+SELECT * FROM ZonaDB_1.dbo.customerAddress;
 
 INSERT INTO ZonaDB_1.dbo.supplier
-SELECT s.*
-FROM salesDB.dbo.supplier s
-JOIN ZonaDB_1.dbo.address a ON s.addressID = a.addressID;
+SELECT *
+FROM salesDB.dbo.supplier;
 
-SELECT * FROM supplier;
+SELECT * FROM ZonaDB_1.dbo.supplier;
 
 INSERT INTO ZonaDB_1.dbo.product
-SELECT p.*
-FROM salesDB.dbo.product p
-JOIN ZonaDB_1.dbo.supplier s ON p.supplierID = s.supplierID;
+SELECT *
+FROM salesDB.dbo.product;
 
-SELECT * FROM product;
+SELECT * FROM ZonaDB_1.dbo.product;
 
 INSERT INTO ZonaDB_1.dbo.customerOrder
-SELECT co.*
+SELECT DISTINCT co.*
 FROM salesDB.dbo.customerOrder co
 JOIN ZonaDB_1.dbo.customer c ON co.customerID = c.customerID;
 
-SELECT * FROM customerOrder;
+SELECT * FROM ZonaDB_1.dbo.customerOrder;
 
 INSERT INTO ZonaDB_1.dbo.orderProduct
 SELECT op.*
 FROM salesDB.dbo.orderProduct op
-JOIN ZonaDB_1.dbo.customerOrder co ON op.orderID = co.orderID
-JOIN ZonaDB_1.dbo.product p ON op.productID = p.productID;
+JOIN ZonaDB_1.dbo.customerOrder co ON op.orderID = co.orderID;
 
-SELECT * FROM orderProduct;
+SELECT * FROM ZonaDB_1.dbo.orderProduct;
 ````
 
    
