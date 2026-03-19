@@ -1,4 +1,4 @@
-# Distribución de datos.
+# Data distribution.
 _______________________________
 
 📌 Vertical Fragmentation
