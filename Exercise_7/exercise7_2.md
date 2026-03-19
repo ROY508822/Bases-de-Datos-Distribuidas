@@ -76,7 +76,7 @@ erDiagram
     product ||--o{ orderProduct : "included in"
 ````
 
-Fragmentos horizontales
+Horizontal fragmentation
 ------------------------
 3. 🧠 *Fragmento ZonaDB_1*. Construye un fragmento horizontal que contenga todos los clientes con dirección en los estados CDMX e Hidalgo. Incluye toda la información de los clientes y su órdenes de compra.
    
@@ -1043,3 +1043,156 @@ JOIN ZonaDB_3.dbo.customerOrder co ON op.orderID = co.orderID;
 
 SELECT * FROM ZonaDB_1.dbo.orderProduct;
 ````
+
+### Script to reconstruct salesDB
+
+````SQL
+CREATE DATABASE salesDB2;
+GO
+
+USE salesDB2;
+GO
+
+CREATE TABLE address (
+    addressID INT PRIMARY KEY,
+    street NVARCHAR(100),
+    locality NVARCHAR(100),
+    city NVARCHAR(100),
+    postcode NVARCHAR(10),
+    state NVARCHAR(50)
+);
+
+CREATE TABLE customer (
+    customerID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    phone NVARCHAR(20),
+    email NVARCHAR(100)
+);
+
+CREATE TABLE customerAddress (
+    customerAddressID INT PRIMARY KEY,
+    customerID INT,
+    addressID INT,
+    type NVARCHAR(50),
+    position INT,
+    CONSTRAINT FK_customerAddress_customer
+        FOREIGN KEY (customerID)
+        REFERENCES customer(customerID),
+    CONSTRAINT FK_customerAddress_address
+        FOREIGN KEY (addressID)
+        REFERENCES address(addressID)
+);
+
+CREATE TABLE supplier (
+    supplierID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    phone NVARCHAR(20),
+    email NVARCHAR(100),
+    addressID INT,
+    CONSTRAINT FK_supplier_address
+        FOREIGN KEY (addressID)
+        REFERENCES address(addressID)
+);
+
+CREATE TABLE product (
+    productID INT PRIMARY KEY,
+    name NVARCHAR(100),
+    type NVARCHAR(50),
+    amount INT,
+    price DECIMAL(10,2),
+    detail NVARCHAR(255),
+    supplierID INT,
+    CONSTRAINT FK_product_supplier
+        FOREIGN KEY (supplierID)
+        REFERENCES supplier(supplierID)
+);
+
+CREATE TABLE customerOrder (
+    orderID INT PRIMARY KEY,
+    customerID INT,
+    date DATE,
+    total DECIMAL(10,2),
+    paymentMethod NVARCHAR(50),
+    status NVARCHAR(50),
+    CONSTRAINT FK_customerOrder_customer
+        FOREIGN KEY (customerID)
+        REFERENCES customer(customerID)
+);
+
+CREATE TABLE orderProduct (
+    orderProductID INT PRIMARY KEY,
+    orderID INT,
+    productID INT,
+    quantity INT,
+    price DECIMAL(10,2),
+    CONSTRAINT FK_orderProduct_order
+        FOREIGN KEY (orderID)
+        REFERENCES customerOrder(orderID),
+    CONSTRAINT FK_orderProduct_product
+        FOREIGN KEY (productID)
+        REFERENCES product(productID)
+);
+
+INSERT INTO salesDB2.dbo.customer
+SELECT * FROM customerDB_test.dbo.customer;
+
+INSERT INTO salesDB2.dbo.address
+SELECT *
+FROM customerDB_test.dbo.address a
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM salesDB2.dbo.address b
+    WHERE b.addressID = a.addressID
+);
+
+INSERT INTO salesDB2.dbo.customerAddress
+SELECT * FROM customerDB_test.dbo.customerAddress;
+
+INSERT INTO salesDB2.dbo.supplier
+SELECT * FROM supplierDB_test.dbo.supplier;
+
+INSERT INTO salesDB2.dbo.product
+SELECT * FROM supplierDB_test.dbo.product
+
+UNION
+
+SELECT * FROM customerDB_test.dbo.product;
+
+INSERT INTO salesDB2.dbo.customerOrder
+SELECT * FROM customerDB_test.dbo.customerOrder;
+
+INSERT INTO salesDB2.dbo.orderProduct
+SELECT * FROM customerDB_test.dbo.orderProduct;
+````
+### Check description to the database 
+
+```` SQL
+SELECT
+    t.name AS Tabla,
+    MAX(p.rows) AS Registros,
+    CAST((SUM(a.data_pages) * 8.0 * 1024) / MAX(p.rows) AS INT) AS [Tuple size (bytes)],
+    CAST(SUM(a.data_pages) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Datos (MB)],
+    CAST((SUM(a.used_pages) - SUM(a.data_pages)) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Índices (MB)],
+    CAST(SUM(a.used_pages) * 8.0 / 1024 AS DECIMAL(10,2)) AS [Total (MB)]
+FROM sys.tables t
+JOIN sys.indexes i
+     ON t.object_id = i.object_id
+JOIN sys.partitions p
+     ON i.object_id = p.object_id
+    AND i.index_id = p.index_id
+JOIN sys.allocation_units a
+     ON p.partition_id = a.container_id
+WHERE i.index_id <= 1
+GROUP BY t.name
+ORDER BY Registros DESC;
+````
+
+| Table           | Zona1 | Zona2 | Zona3 | Zona4 | Zona5 |
+|-----------------|-------|-------|-------|-------|-------|
+| customerAddress | 110   | 74    | 0.01  | 0.01  | 0.02  |
+| customerOrder   | 101   | 81    | 0.01  | 0.01  | 0.02  |
+| orderProduct    | 100   | 81    | 0.01  | 0.01  | 0.02  |
+| product         | 100   | 163   | 0.02  | 0.02  | 0.03  |
+| supplier        | 100   | 163   | 0.02  | 0.02  | 0.03  |
+| address         | 100   | 163   | 0.02  | 0.02  | 0.03  |
+| customer        | 100   | 163   | 0.02  | 0.02  | 0.03  |
