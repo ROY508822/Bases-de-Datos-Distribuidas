@@ -264,13 +264,13 @@ CREATE TABLE orderProduct (
 );
 GO
 
--- Identity no usado por problemas de consistencia a la hora de fragmnetar se deberia de hacer un id global
+-- Identity no usado por problemas de consistencia en fragmentación; se recomienda usar identificadores globales
 ````
  
-### 📌 Scripts for downloading data from the **salesBD** database in CSV format.
+### 📌 Scripts for downloading data from the **salesDB** database in CSV format.
 
 From the command line, we can extract information from a table in a SQL Server database and store the content in a plain text file. 
-In the following example, data is extracted from the tables in the salesDB database and saved in the CVS files.
+In the following example, data is extracted from the tables in the salesDB database and saved in the CSV files.
 
 ````CMD
 bcp "SELECT * FROM salesDB.dbo.address WHERE state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\address_zona1.csv" -c -t, -r\n -S localhost -T
