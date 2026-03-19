@@ -355,45 +355,38 @@ GO
 
 ````SQL
 INSERT INTO ZonaDB_1.dbo.address
-SELECT a.*
-FROM salesDB.dbo.address a
+SELECT a.* FROM salesDB.dbo.address a
 WHERE a.state IN ('CDMX', 'Hidalgo');
 
 
 INSERT INTO ZonaDB_1.dbo.customer
-SELECT DISTINCT c.*
-FROM salesDB.dbo.customer c
+SELECT DISTINCT c.* FROM salesDB.dbo.customer c
 JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID
 JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
 
 
 INSERT INTO ZonaDB_1.dbo.customerAddress
-SELECT ca.*
-FROM salesDB.dbo.customerAddress ca
+SELECT ca.* FROM salesDB.dbo.customerAddress ca
 JOIN ZonaDB_1.dbo.customer c ON ca.customerID = c.customerID
 JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
 
 
 INSERT INTO ZonaDB_1.dbo.customerOrder
-SELECT co.*
-FROM salesDB.dbo.customerOrder co
+SELECT co.* FROM salesDB.dbo.customerOrder co
 JOIN ZonaDB_1.dbo.customer c ON co.customerID = c.customerID;
 
 
 INSERT INTO ZonaDB_1.dbo.orderProduct
-SELECT op.*
-FROM salesDB.dbo.orderProduct op
+SELECT op.* FROM salesDB.dbo.orderProduct op
 JOIN ZonaDB_1.dbo.customerOrder co ON op.orderID = co.orderID;
 
 
 INSERT INTO ZonaDB_1.dbo.supplier
-SELECT *
-FROM salesDB.dbo.supplier;
+SELECT * FROM salesDB.dbo.supplier;
 
 
 INSERT INTO ZonaDB_1.dbo.product
-SELECT *
-FROM salesDB.dbo.product;
+SELECT * FROM salesDB.dbo.product;
 ````
 
    
