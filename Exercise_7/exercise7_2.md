@@ -347,7 +347,7 @@ WITH (
 GO
 ````
 
-**Alternativa sencilla SQL server**
+Another option to extract and load tables form diferent databases (ONLY SQL SERVER)
 
 ````SQL
 INSERT INTO ZonaDB_1.dbo.address
