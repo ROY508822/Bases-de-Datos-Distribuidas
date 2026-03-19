@@ -157,7 +157,7 @@ erDiagram
 
     product ||--o{ orderProduct : "included in"
 ````
-To create the database **customerDB** use following command:
+To create the database **ZonaDB_1** use following command:
 ````SQL
 CREATE DATABASE ZonaDB_1;
 GO
@@ -205,19 +205,6 @@ CREATE TABLE customerAddress (
 GO
 
 -- REPLICA
-CREATE TABLE product (
-    productID INT NOT NULL,
-    name NVARCHAR(100) NOT NULL,
-    type NVARCHAR(50),
-    amount INT NOT NULL DEFAULT 0,
-    price DECIMAL(10,2) NOT NULL,
-    detail NVARCHAR(255),
-    supplierID INT,
-    CONSTRAINT pk_product PRIMARY KEY (productID)
-);
-GO
-
--- REPLICA
 CREATE TABLE supplier (
     supplierID INT NOT NULL,
     name NVARCHAR(100) NOT NULL,
@@ -228,6 +215,22 @@ CREATE TABLE supplier (
     CONSTRAINT fk_supplier_address
         FOREIGN KEY (addressID)
         REFERENCES address(addressID)
+);
+GO
+
+-- REPLICA
+CREATE TABLE product (
+    productID INT NOT NULL,
+    name NVARCHAR(100) NOT NULL,
+    type NVARCHAR(50),
+    amount INT NOT NULL DEFAULT 0,
+    price DECIMAL(10,2) NOT NULL,
+    detail NVARCHAR(255),
+    supplierID INT,
+    CONSTRAINT pk_product PRIMARY KEY (productID),
+    CONSTRAINT fk_product_supplier
+        FOREIGN KEY (supplierID)
+        REFERENCES supplier(supplierID)
 );
 GO
 
@@ -270,81 +273,127 @@ From the command line, we can extract information from a table in a SQL Server d
 In the following example, data is extracted from the tables in the salesDB database and saved in the CVS files.
 
 ````CMD
-bcp "SELECT * FROM salesDB.dbo.address WHERE state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\address.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.address WHERE state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\address_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT * FROM salesDB.dbo.customer c WHERE EXISTS (SELECT 1 FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo'))" queryout "C:\Users\royes\Desktop\customer.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT DISTINCT c.* FROM salesDB.dbo.customer c JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customer_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT ca.customerAddressID, ca.customerID, ca.addressID, ca.type, ca.position FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerAddress.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT ca.customerAddressID, ca.customerID, ca.addressID, ca.type, ca.position FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerAddress_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT * FROM salesDB.dbo.customerOrder co WHERE EXISTS (SELECT 1 FROM salesDB.dbo.customer c WHERE c.customerID = co.customerID AND EXISTS (SELECT 1 FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo')))" queryout "C:\Users\royes\Desktop\customerOrder.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT co.* FROM salesDB.dbo.customerOrder co JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerOrder_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT * FROM salesDB.dbo.orderProduct op WHERE op.orderID IN (SELECT orderID FROM salesDB.dbo.customerOrder co WHERE EXISTS (SELECT 1 FROM salesDB.dbo.customer c WHERE c.customerID = co.customerID AND EXISTS (SELECT 1 FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo'))))" queryout "C:\Users\royes\Desktop\orderProduct.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT op.* FROM salesDB.dbo.orderProduct op JOIN salesDB.dbo.customerOrder co ON op.orderID = co.orderID JOIN salesDB.dbo.customer c ON co.customerID = c.customerID JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\orderProduct_zona1.csv" -c -t, -r\n -S localhost -T
 
 
-bcp "SELECT * FROM salesDB.dbo.product" queryout "C:\Users\royes\Desktop\product.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.product" queryout "C:\Users\royes\Desktop\product_zona1.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT * FROM salesDB.dbo.supplier" queryout "C:\Users\royes\Desktop\supplier.csv" -c -t, -r\n -S localhost -T
-
+bcp "SELECT * FROM salesDB.dbo.supplier" queryout "C:\Users\royes\Desktop\supplier_zona1.csv" -c -t, -r\n -S localhost -T
 ````
 
-**Scripts para cargar los datos al fragmento 1.** 📌
+### 📌 Scripts for loading data from the CSV format files to database ZonaDB_1.
 
 ````SQL
-BULK INSERT zona1DB.dbo.address
-FROM 'C:\Users\royes\Desktop\address.csv'
+BULK INSERT dbo.address
+FROM 'C:\Users\royes\Desktop\address_zona1.csv'
 WITH (
     FIELDTERMINATOR = ',',
     ROWTERMINATOR = '\n',
     CODEPAGE = '65001'
 );
 
-BULK INSERT zona1DB.dbo.customer
-FROM 'C:\Users\royes\Desktop\customer.csv'
+BULK INSERT dbo.supplier
+FROM 'C:\Users\royes\Desktop\supplier_zona1.csv'
 WITH (
     FIELDTERMINATOR = ',',
     ROWTERMINATOR = '\n',
     CODEPAGE = '65001'
 );
 
-BULK INSERT zona1DB.dbo.customerAddress
-FROM 'C:\Users\royes\Desktop\customerAddress.csv'
+BULK INSERT dbo.product
+FROM 'C:\Users\royes\Desktop\product_zona1.csv'
 WITH (
     FIELDTERMINATOR = ',',
     ROWTERMINATOR = '\n',
     CODEPAGE = '65001'
 );
 
-BULK INSERT zona1DB.dbo.customerOrder
-FROM 'C:\Users\royes\Desktop\customerOrder.csv'
+BULK INSERT dbo.customer
+FROM 'C:\Users\royes\Desktop\customer_zona1.csv'
 WITH (
     FIELDTERMINATOR = ',',
     ROWTERMINATOR = '\n',
     CODEPAGE = '65001'
 );
+
+BULK INSERT dbo.customerAddress
+FROM 'C:\Users\royes\Desktop\customerAddress_zona1.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+
+BULK INSERT dbo.customerOrder
+FROM 'C:\Users\royes\Desktop\customerOrder_zona1.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+
+BULK INSERT dbo.orderProduct
+FROM 'C:\Users\royes\Desktop\orderProduct_zona1.csv'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    CODEPAGE = '65001'
+);
+
+GO
 ````
 
 **Alternativa sencilla SQL server**
 
 ````SQL
-INSERT INTO zona1DB.dbo.address
-SELECT a.* FROM ECOMMERCE.dbo.address a
+INSERT INTO ZonaDB_1.dbo.address
+SELECT a.*
+FROM salesDB.dbo.address a
 WHERE a.state IN ('CDMX', 'Hidalgo');
 
-INSERT INTO zona1DB.dbo.customer
-SELECT c.* FROM ECOMMERCE.dbo.customer c
-WHERE EXISTS ( SELECT 1 FROM ECOMMERCE.dbo.customerAddress ca
-JOIN zona1DB.dbo.address a ON ca.addressID = a.addressID
-WHERE ca.customerID = c.customerID);
 
-INSERT INTO zona1DB.dbo.customerAddress
-SELECT ca.* FROM ECOMMERCE.dbo.customerAddress ca
-JOIN zona1DB.dbo.customer c ON ca.customerID = c.customerID
-JOIN zona1DB.dbo.address a ON ca.addressID = a.addressID;
+INSERT INTO ZonaDB_1.dbo.customer
+SELECT DISTINCT c.*
+FROM salesDB.dbo.customer c
+JOIN salesDB.dbo.customerAddress ca ON c.customerID = ca.customerID
+JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
 
-INSERT INTO zona1DB.dbo.customerOrder
-SELECT co.* FROM ECOMMERCE.dbo.customerOrder co
-WHERE EXISTS ( SELECT 1 FROM zona1DB.dbo.customer c
-WHERE c.customerID = co.customerID);
+
+INSERT INTO ZonaDB_1.dbo.customerAddress
+SELECT ca.*
+FROM salesDB.dbo.customerAddress ca
+JOIN ZonaDB_1.dbo.customer c ON ca.customerID = c.customerID
+JOIN ZonaDB_1.dbo.address a ON ca.addressID = a.addressID;
+
+
+INSERT INTO ZonaDB_1.dbo.customerOrder
+SELECT co.*
+FROM salesDB.dbo.customerOrder co
+JOIN ZonaDB_1.dbo.customer c ON co.customerID = c.customerID;
+
+
+INSERT INTO ZonaDB_1.dbo.orderProduct
+SELECT op.*
+FROM salesDB.dbo.orderProduct op
+JOIN ZonaDB_1.dbo.customerOrder co ON op.orderID = co.orderID;
+
+
+INSERT INTO ZonaDB_1.dbo.supplier
+SELECT *
+FROM salesDB.dbo.supplier;
+
+
+INSERT INTO ZonaDB_1.dbo.product
+SELECT *
+FROM salesDB.dbo.product;
 ````
 
    
