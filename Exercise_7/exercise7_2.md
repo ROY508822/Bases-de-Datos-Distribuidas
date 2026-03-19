@@ -1,63 +1,290 @@
+These lab is based on the following relational model.
+
+````mermaid
+erDiagram
+
+    address {
+        int addressID PK
+        string street
+        string localy
+        string city
+        string postcode
+        string state
+    }
+
+    customer {
+        int customerID PK
+        string name
+        string phone
+        string email
+    }
+
+    customerAddress {
+        int customerAddressID PK
+        int customerID FK
+        int addressID FK
+        string type
+        int position
+    }
+
+    supplier {
+        int supplierID PK
+        string name
+        string phone
+        string email
+        int addressID FK
+    }
+
+    product {
+        int productID PK
+        string name
+        string type
+        int amount
+        decimal price
+        string detail
+        int supplierID FK
+    }
+
+    customerOrder {
+        int orderID PK
+        int customerID FK
+        date date
+        decimal total
+        string paymentMethod
+        string status
+    }
+
+    orderProduct {
+        int orderProductID PK
+        int orderID FK
+        int productID FK
+        int quantity
+        decimal price
+    }
+
+    address ||--o{ customerAddress : "used by"
+    customer ||--o{ customerAddress : "has"
+
+    address ||--o{ supplier : "location of"
+
+    supplier ||--o{ product : "supplies"
+
+    customer ||--o{ customerOrder : "places"
+
+    customerOrder ||--o{ orderProduct : "contains"
+
+    product ||--o{ orderProduct : "included in"
+````
+
 Fragmentos horizontales
 ------------------------
 3. 🧠 *Fragmento zona1DB*. Construye un fragmento horizontal que contenga todos los clientes con dirección en los estados CDMX e Hidalgo. Incluye toda la información de los clientes y su órdenes de compra.
    
 **Esquema del fragmento** ✅
 
-<img width="969" height="660" alt="image" src="https://github.com/user-attachments/assets/8df720db-b566-4b80-b9d8-6edbf3235d6d" />
+````mermaid
+erDiagram
 
+    address {
+        int addressID PK
+        string street
+        string localy
+        string city
+        string postcode
+        string state
+    }
 
-**Script para crear fragmento** ✅
+    customer {
+        int customerID PK
+        string name
+        string phone
+        string email
+    }
 
+    customerAddress {
+        int customerAddressID PK
+        int customerID FK
+        int addressID FK
+        string type
+        int position
+    }
+
+    supplier {
+        int supplierID PK
+        string name
+        string phone
+        string email
+        int addressID FK
+    }
+
+    product {
+        int productID PK
+        string name
+        string type
+        int amount
+        decimal price
+        string detail
+        int supplierID FK
+    }
+
+    customerOrder {
+        int orderID PK
+        int customerID FK
+        date date
+        decimal total
+        string paymentMethod
+        string status
+    }
+
+    orderProduct {
+        int orderProductID PK
+        int orderID FK
+        int productID FK
+        int quantity
+        decimal price
+    }
+
+    address ||--o{ customerAddress : "used by"
+    customer ||--o{ customerAddress : "has"
+
+    address ||--o{ supplier : "location of"
+
+    supplier ||--o{ product : "supplies"
+
+    customer ||--o{ customerOrder : "places"
+
+    customerOrder ||--o{ orderProduct : "contains"
+
+    product ||--o{ orderProduct : "included in"
+````
+To create the database **customerDB** use following command:
 ````SQL
-CREATE DATABASE zona1DB;
-USE zona1DB;
-
-CREATE TABLE address (
-    addressID  INT PRIMARY KEY,
-    street     NVARCHAR(100),
-    locality   NVARCHAR(100),
-    city       NVARCHAR(100),
-    postcode   NVARCHAR(10),
-    state      NVARCHAR(50)
-);
-
-CREATE TABLE customer(
-    customerID INT PRIMARY KEY,
-    name       NVARCHAR(100),
-    phone      NVARCHAR(20),
-    email      NVARCHAR(100),
-    addressID  INT
-);
-
-CREATE TABLE customerAddress (
-    customerAddressID INT PRIMARY KEY,
-    customerID        INT,
-    addressID         INT,
-    type              NVARCHAR(50),
-    position          NVARCHAR(50)
-);
-
-CREATE TABLE customerOrder(
-    orderID        INT PRIMARY KEY,
-    customerID     INT,
-    date           DATE,
-    total          DECIMAL(10,2),
-    paymentMethod  NVARCHAR(50),
-    status         NVARCHAR(50)
-);
+CREATE DATABASE ZonaDB_1;
+GO
 ````
 
-**Scripts para descargar los datos de la base de datos salesbd.** 📌
+To create the database tables, you must use the following commands:
+````SQL
+USE ZonaDB_1;
+GO
+
+CREATE TABLE address (
+    addressID INT NOT NULL,
+    street NVARCHAR(100) NOT NULL,
+    locality NVARCHAR(100) NOT NULL,
+    city NVARCHAR(100) NOT NULL,
+    postcode NVARCHAR(10) NOT NULL,
+    state NVARCHAR(50) NOT NULL,
+    CONSTRAINT pk_address PRIMARY KEY (addressID)
+);
+GO
+
+CREATE TABLE customer (
+    customerID INT NOT NULL,
+    name NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(20),
+    email NVARCHAR(100) NOT NULL,
+    CONSTRAINT pk_customer PRIMARY KEY (customerID)
+);
+GO
+
+CREATE TABLE customerAddress (
+    customerAddressID INT NOT NULL,
+    customerID INT NOT NULL,
+    addressID INT NOT NULL,
+    type NVARCHAR(50) NOT NULL,
+    position NVARCHAR(50),
+    CONSTRAINT pk_customerAddress PRIMARY KEY (customerAddressID),
+    CONSTRAINT fk_ca_customer
+        FOREIGN KEY (customerID)
+        REFERENCES customer(customerID),
+    CONSTRAINT fk_ca_address
+        FOREIGN KEY (addressID)
+        REFERENCES address(addressID)
+);
+GO
+
+-- REPLICA
+CREATE TABLE product (
+    productID INT NOT NULL,
+    name NVARCHAR(100) NOT NULL,
+    type NVARCHAR(50),
+    amount INT NOT NULL DEFAULT 0,
+    price DECIMAL(10,2) NOT NULL,
+    detail NVARCHAR(255),
+    supplierID INT,
+    CONSTRAINT pk_product PRIMARY KEY (productID)
+);
+GO
+
+-- REPLICA
+CREATE TABLE supplier (
+    supplierID INT NOT NULL,
+    name NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(20),
+    email NVARCHAR(100),
+    addressID INT,
+    CONSTRAINT pk_supplier PRIMARY KEY (supplierID),
+    CONSTRAINT fk_supplier_address
+        FOREIGN KEY (addressID)
+        REFERENCES address(addressID)
+);
+GO
+
+CREATE TABLE customerOrder (
+    orderID INT NOT NULL,
+    customerID INT NOT NULL,
+    date DATE NOT NULL,
+    total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    paymentMethod NVARCHAR(50),
+    status NVARCHAR(50) NOT NULL DEFAULT 'pending',
+    CONSTRAINT pk_customerOrder PRIMARY KEY (orderID),
+    CONSTRAINT fk_co_customer
+        FOREIGN KEY (customerID)
+        REFERENCES customer(customerID)
+);
+GO
+
+CREATE TABLE orderProduct (
+    orderProductID INT NOT NULL,
+    orderID INT NOT NULL,
+    productID INT NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    CONSTRAINT pk_orderProduct PRIMARY KEY (orderProductID),
+    CONSTRAINT fk_op_order
+        FOREIGN KEY (orderID)
+        REFERENCES customerOrder(orderID),
+    CONSTRAINT fk_op_product
+        FOREIGN KEY (productID)
+        REFERENCES product(productID)
+);
+GO
+
+-- Identity no usado por problemas de consistencia a la hora de fragmnetar se deberia de hacer un id global
+````
+ 
+### 📌 Scripts for downloading data from the **salesBD** database in CSV format.
+
+From the command line, we can extract information from a table in a SQL Server database and store the content in a plain text file. 
+In the following example, data is extracted from the tables in the salesDB database and saved in the CVS files.
 
 ````CMD
-bcp "SELECT * FROM ECOMMERCE.dbo.address WHERE state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\address.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.address WHERE state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\address.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT * FROM ECOMMERCE.dbo.customer c WHERE EXISTS (SELECT 1 FROM ECOMMERCE.dbo.customerAddress ca JOIN ECOMMERCE.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo'))" queryout "C:\Users\royes\Desktop\customer.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.customer c WHERE EXISTS (SELECT 1 FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo'))" queryout "C:\Users\royes\Desktop\customer.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT ca.customerAddressID, ca.customerID, ca.addressID, ca.type, ca.position FROM ECOMMERCE.dbo.customerAddress ca JOIN ECOMMERCE.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerAddress.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT ca.customerAddressID, ca.customerID, ca.addressID, ca.type, ca.position FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE a.state IN ('CDMX','Hidalgo')" queryout "C:\Users\royes\Desktop\customerAddress.csv" -c -t, -r\n -S localhost -T
 
-bcp "SELECT * FROM ECOMMERCE.dbo.customerOrder co WHERE EXISTS (SELECT 1 FROM ECOMMERCE.dbo.customer c WHERE c.customerID = co.customerID AND EXISTS (SELECT 1 FROM ECOMMERCE.dbo.customerAddress ca JOIN ECOMMERCE.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo')))" queryout "C:\Users\royes\Desktop\customerOrder.csv" -c -t, -r\n -S localhost -T
+bcp "SELECT * FROM salesDB.dbo.customerOrder co WHERE EXISTS (SELECT 1 FROM salesDB.dbo.customer c WHERE c.customerID = co.customerID AND EXISTS (SELECT 1 FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo')))" queryout "C:\Users\royes\Desktop\customerOrder.csv" -c -t, -r\n -S localhost -T
+
+bcp "SELECT * FROM salesDB.dbo.orderProduct op WHERE op.orderID IN (SELECT orderID FROM salesDB.dbo.customerOrder co WHERE EXISTS (SELECT 1 FROM salesDB.dbo.customer c WHERE c.customerID = co.customerID AND EXISTS (SELECT 1 FROM salesDB.dbo.customerAddress ca JOIN salesDB.dbo.address a ON ca.addressID = a.addressID WHERE ca.customerID = c.customerID AND a.state IN ('CDMX','Hidalgo'))))" queryout "C:\Users\royes\Desktop\orderProduct.csv" -c -t, -r\n -S localhost -T
+
+
+bcp "SELECT * FROM salesDB.dbo.product" queryout "C:\Users\royes\Desktop\product.csv" -c -t, -r\n -S localhost -T
+
+bcp "SELECT * FROM salesDB.dbo.supplier" queryout "C:\Users\royes\Desktop\supplier.csv" -c -t, -r\n -S localhost -T
+
 ````
 
 **Scripts para cargar los datos al fragmento 1.** 📌
